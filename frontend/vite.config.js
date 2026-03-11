@@ -29,18 +29,20 @@ export default defineConfig({
     host: true, // Allow external connections (for Windows laptop to connect)
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_TARGET || 'http://localhost:8000',
         changeOrigin: true,
       },
       '/register': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_TARGET || 'http://localhost:8000',
         changeOrigin: true,
       },
       '/health': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_TARGET || 'http://localhost:8000',
         changeOrigin: true,
       },
     },
+    // SPA fallback for client-side routing in dev server
+    historyApiFallback: true,
   },
   // SPA fallback for client-side routing
   build: {

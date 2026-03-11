@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DeviceCard from '../components/devices/DeviceCard';
 import AddDeviceCard from '../components/devices/AddDeviceCard';
 import DevicesHeader from '../components/devices/DevicesHeader';
@@ -7,7 +8,8 @@ import DeviceFilters from '../components/devices/DeviceFilters';
 import SecurityInfo from '../components/devices/SecurityInfo';
 import { useDevices } from '../hooks/useDevices';
 
-export default function Devices({ onNavigate }) {
+export default function Devices() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
@@ -41,7 +43,7 @@ export default function Devices({ onNavigate }) {
   }, [allDevices, searchTerm, activeFilter]);
 
   const handleAddDevice = () => {
-    onNavigate?.('add-device');
+    navigate('/add-device');
   };
 
   const handleRemoveDevice = async (deviceId) => {

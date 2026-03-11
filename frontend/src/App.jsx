@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Devices from './pages/Devices';
@@ -8,58 +8,38 @@ import PairDevice from './pages/PairDevice';
 import SearchResults from './pages/SearchResults';
 import './index.css';
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [pageParams, setPageParams] = useState({});
-
-  const navigateTo = (page, params = {}) => {
-    setCurrentPage(page);
-    setPageParams(params);
-  };
-
-  // Handle URL-based routing for pairing page
-  useEffect(() => {
-    const path = window.location.pathname;
-    const pairMatch = path.match(/^\/pair\/([A-Z0-9]+)$/i);
-
-    if (pairMatch) {
-      setCurrentPage('pair');
-      setPageParams({ code: pairMatch[1] });
-    }
-  }, []);
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'devices':
-        return <Devices onNavigate={navigateTo} />;
-      case 'device-register':
-        return <DeviceRegister />;
-      case 'add-device':
-        return <AddDevice onNavigate={navigateTo} />;
-      case 'pair':
-        return <PairDevice pairingCode={pageParams.code} onNavigate={navigateTo} />;
-      case 'search-results':
-        return <SearchResults initialQuery={pageParams.query || ''} />;
-      default:
-        return <Home onNavigate={navigateTo} />;
-    }
-  };
-
-  // For pairing page, render without layout
-  if (currentPage === 'pair') {
-    return (
-      <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-        {renderPage()}
-      </div>
-    );
-  }
-
+// Component for pairing page without layout
+function PairingWrapper() {
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-      <Layout currentPage={currentPage} onNavigate={navigateTo}>
-        {renderPage()}
-      </Layout>
+      <Routes>
+        <Route path="/:code" element={<PairDevice />} />
+      </Routes>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Pairing route without layout */}
+        <Route path="/pair/*" element={<PairingWrapper />} />
+
+        {/* Routes with layout */}
+        <Route element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="home" element={<Navigate to="/" replace />} />
+          <Route path="devices" element={<Devices />} />
+          <Route path="add-device" element={<AddDevice />} />
+          <Route path="device-register" element={<DeviceRegister />} />
+          <Route path="search" element={<SearchResults />} />
+        </Route>
+
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

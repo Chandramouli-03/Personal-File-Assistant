@@ -1,12 +1,16 @@
+import { Link, useLocation } from 'react-router-dom';
 import { MdFolderShared, MdHome, MdDevices, MdCloudDone, MdHistory, MdSettings, MdFolder, MdSwapHoriz } from 'react-icons/md';
 
-export default function Sidebar({ currentPage = 'home', onNavigate }) {
+export default function Sidebar() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const navItems = [
-    { id: 'home', label: 'Home', icon: MdHome },
-    { id: 'files', label: 'My Files', icon: MdFolder },
-    { id: 'devices', label: 'Devices', icon: MdDevices },
-    // { id: 'transfers', label: 'Transfers', icon: MdSwapHoriz },
-    { id: 'settings', label: 'Settings', icon: MdSettings },
+    { id: 'home', label: 'Home', icon: MdHome, path: '/' },
+    { id: 'files', label: 'My Files', icon: MdFolder, path: '/files' },
+    { id: 'devices', label: 'Devices', icon: MdDevices, path: '/devices' },
+    // { id: 'transfers', label: 'Transfers', icon: MdSwapHoriz, path: '/transfers' },
+    { id: 'settings', label: 'Settings', icon: MdSettings, path: '/settings' },
   ];
 
   return (
@@ -26,18 +30,18 @@ export default function Sidebar({ currentPage = 'home', onNavigate }) {
         {/* Navigation Links */}
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
-            <button
+            <Link
               key={item.id}
-              onClick={() => onNavigate?.(item.id)}
+              to={item.path}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                currentPage === item.id
+                currentPath === item.path
                   ? 'bg-primary/10 text-primary'
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <item.icon />
               <span className="text-sm font-medium">{item.label}</span>
-            </button>
+            </Link>
           ))}
         </nav>
 

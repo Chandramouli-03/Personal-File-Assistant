@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import QuickActions from '../components/QuickActions';
 import RecentActivity from '../components/RecentActivity';
 import { getFileStats } from '../services/api';
 import { formatSize } from '../utils/format';
 
-export default function Home({ onNavigate }) {
+export default function Home() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,7 +32,7 @@ export default function Home({ onNavigate }) {
   }, []);
 
   const handleSearch = (query) => {
-    onNavigate?.('search-results', { query });
+    navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const handleQuickAction = (actionType) => {
@@ -43,7 +45,7 @@ export default function Home({ onNavigate }) {
     };
     const query = actionQueries[actionType];
     if (query) {
-      onNavigate?.('search-results', { query });
+      navigate(`/search?q=${encodeURIComponent(query)}`);
     }
   };
 

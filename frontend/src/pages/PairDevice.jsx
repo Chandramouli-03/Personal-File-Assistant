@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { MdTerminal, MdComputer, MdPhoneAndroid, MdCheck, MdClose, MdAdd, MdDelete } from 'react-icons/md';
 import { getPairingStatus, completePairing } from '../services/api';
 
@@ -14,7 +15,9 @@ const DEVICE_TYPE_NAMES = {
   mobile: 'Mobile',
 };
 
-export default function PairDevice({ pairingCode, onNavigate }) {
+export default function PairDevice() {
+  const { code } = useParams();
+  const pairingCode = code;
   const [step, setStep] = useState('loading'); // loading, form, success, error
   const [pairingInfo, setPairingInfo] = useState(null);
   const [deviceName, setDeviceName] = useState('');
@@ -47,12 +50,6 @@ export default function PairDevice({ pairingCode, onNavigate }) {
   // Fetch pairing info
   useEffect(() => {
     const fetchPairingInfo = async () => {
-      if (!pairingCode) {
-        setError('No pairing code provided');
-        setStep('error');
-        return;
-      }
-
       try {
         const data = await getPairingStatus(pairingCode);
         setPairingInfo(data);
@@ -67,6 +64,12 @@ export default function PairDevice({ pairingCode, onNavigate }) {
         }
         setStep('error');
       }
+
+      // if (!pairingCode) {
+      //   setError('No pairing code provided');
+      //   setStep('error');
+      //   return;
+      // }
     };
 
     fetchPairingInfo();

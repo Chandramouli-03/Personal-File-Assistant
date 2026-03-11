@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MdComputer, MdTerminal, MdPhoneAndroid, MdContentCopy, MdCheck, MdClose, MdRefresh } from 'react-icons/md';
-import { createPairing, getPairingStatus, cancelPairing } from '../services/api';
+import { createPairing, cancelPairing } from '../services/api';
 
 const DEVICE_TYPES = [
   { id: 'linux', name: 'Linux', icon: MdTerminal, color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600', description: 'Ubuntu, Fedora, Debian, etc.' },
@@ -8,7 +9,9 @@ const DEVICE_TYPES = [
   { id: 'mobile', name: 'Mobile', icon: MdPhoneAndroid, color: 'bg-green-100 dark:bg-green-900/30 text-green-600', description: 'Android phone or tablet' },
 ];
 
-export default function AddDevice({ onNavigate, onComplete }) {
+export default function AddDevice() {
+  console.log('AddDevice component mounted');
+  const navigate = useNavigate();
   const [step, setStep] = useState('select'); // select, pairing, success, error
   const [selectedType, setSelectedType] = useState(null);
   const [pairingData, setPairingData] = useState(null);
@@ -16,74 +19,24 @@ export default function AddDevice({ onNavigate, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(null);
-
-  // Poll for pairing status
-  const checkPairingStatus = useCallback(async () => {
-    if (!pairingData?.pairing_code) return;
-
-    try {
-      const status = await getPairingStatus(pairingData.pairing_code);
-
-      if (status.status === 'completed' && status.device) {
-        setStep('success');
-        setPairedDevice(status.device);
-        if (onComplete) {
-          onComplete(status.device);
-        }
-      }
-    } catch (err) {
-      if (err.message?.includes('410') || err.message?.includes('expired')) {
-        setError('Pairing code expired. Please try again.');
-        setStep('error');
-      }
-    }
-  }, [pairingData?.pairing_code, onComplete]);
-
-  // Start polling when in pairing state
-  useEffect(() => {
-    if (step !== 'pairing') return;
-
-    const interval = setInterval(checkPairingStatus, 2000);
-    return () => clearInterval(interval);
-  }, [step, checkPairingStatus]);
-
-  // Countdown timer for expiration
-  useEffect(() => {
-    if (step !== 'pairing' || !pairingData?.expires_at) return;
-
-    const updateCountdown = () => {
-      const expires = new Date(pairingData.expires_at);
-      const now = new Date();
-      const diff = Math.max(0, Math.floor((expires - now) / 1000));
-
-      if (diff === 0) {
-        setError('Pairing code expired. Please try again.');
-        setStep('error');
-        return;
-      }
-
-      const minutes = Math.floor(diff / 60);
-      const seconds = diff % 60;
-      setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [step, pairingData?.expires_at]);
 
   const handleSelectType = async (type) => {
+    console.log('handleSelectType called - type:', type);
     setSelectedType(type);
     setLoading(true);
     setError(null);
 
     try {
       const data = await createPairing(type.id);
+      console.log("data: ", data)
+      console.log('setStep called: pairing - data:', data);
       setPairingData(data);
       setStep('pairing');
     } catch (err) {
+      console.log('handleSelectType error:', err);
+      console.log('setStep called: error - create pairing failed - err:', err);
       setError(err.message || 'Failed to create pairing session');
+      console.log("err: ", err)
       setStep('error');
     } finally {
       setLoading(false);
@@ -91,33 +44,41 @@ export default function AddDevice({ onNavigate, onComplete }) {
   };
 
   const handleCopyCode = async () => {
+    console.log('handleCopyCode called');
     if (pairingData?.pairing_code) {
       await navigator.clipboard.writeText(pairingData.pairing_code);
+      console.log('Code copied to clipboard:', pairingData.pairing_code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const handleCopyLink = async () => {
+    console.log('handleCopyLink called');
     if (pairingData?.pairing_url) {
       await navigator.clipboard.writeText(pairingData.pairing_url);
+      console.log('Link copied to clipboard:', pairingData.pairing_url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const handleCancel = async () => {
+    console.log('handleCancel called - pairing_code:', pairingData?.pairing_code);
     if (pairingData?.pairing_code) {
       try {
         await cancelPairing(pairingData.pairing_code);
+        console.log('Pairing cancelled successfully');
       } catch (err) {
+        console.log('handleCancel error:', err);
         // Ignore errors on cancel
       }
     }
-    onNavigate?.('devices');
+    navigate('/devices');
   };
 
   const handleRetry = () => {
+    console.log('setStep called: select - retry');
     setStep('select');
     setSelectedType(null);
     setPairingData(null);
@@ -127,6 +88,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
 
   // Step 1: Select device type
   if (step === 'select') {
+    console.log('Rendering step: select');
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
@@ -134,7 +96,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
             {/* Header */}
             <div>
               <button
-                onClick={() => onNavigate?.('devices')}
+                onClick={() => navigate('/devices')}
                 className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mb-4 flex items-center gap-2"
               >
                 <MdClose /> Cancel
@@ -183,6 +145,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
 
   // Step 2: Show pairing code
   if (step === 'pairing') {
+    console.log('Rendering step: pairing');
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
@@ -205,12 +168,6 @@ export default function AddDevice({ onNavigate, onComplete }) {
 
             {/* Pairing Code Card */}
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg text-center">
-              {/* Countdown */}
-              <div className="mb-6">
-                <span className="text-sm text-slate-500">Expires in </span>
-                <span className="font-bold text-primary">{countdown}</span>
-              </div>
-
               {/* Pairing Code */}
               <div className="mb-8">
                 <p className="text-sm text-slate-500 mb-2">Pairing Code</p>
@@ -252,15 +209,19 @@ export default function AddDevice({ onNavigate, onComplete }) {
                   <li>1. Open the link above on your {selectedType?.name?.toLowerCase()} device</li>
                   <li>2. Enter a name for your device</li>
                   <li>3. Click "Complete Pairing"</li>
-                  <li>4. Wait for confirmation on this screen</li>
+                  <li>4. Come back to this screen to see confirmation</li>
                 </ol>
               </div>
             </div>
 
-            {/* Waiting Animation */}
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent mb-4"></div>
-              <p className="text-slate-500">Waiting for device to connect...</p>
+            {/* Cancel Button at bottom */}
+            <div className="flex justify-center py-4">
+              <button
+                onClick={handleCancel}
+                className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-6 py-3 rounded-lg font-semibold"
+              >
+                Cancel and Go to Devices
+              </button>
             </div>
           </div>
         </div>
@@ -270,6 +231,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
 
   // Step 3: Success
   if (step === 'success') {
+    console.log('Rendering step: success');
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
@@ -285,7 +247,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
                 {pairedDevice?.name} has been added to your devices
               </p>
               <button
-                onClick={() => onNavigate?.('devices')}
+                onClick={() => navigate('/devices')}
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95"
               >
                 View Devices
@@ -299,6 +261,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
 
   // Error state
   if (step === 'error') {
+    console.log('Rendering step: error');
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
@@ -321,7 +284,7 @@ export default function AddDevice({ onNavigate, onComplete }) {
                   <MdRefresh /> Try Again
                 </button>
                 <button
-                  onClick={() => onNavigate?.('devices')}
+                  onClick={() => navigate('/devices')}
                   className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-6 py-3 rounded-lg font-semibold"
                 >
                   Cancel

@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SearchResultsHeader from '../components/search-results/SearchResultsHeader';
 import SearchFilter from '../components/search-results/SearchFilter';
 import SearchResultItem from '../components/search-results/SearchResultItem';
 import { useSearch } from '../hooks/useSearch';
 
-export default function SearchResults({ initialQuery = '' }) {
+export default function SearchResults() {
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedItems, setSelectedItems] = useState(new Set());

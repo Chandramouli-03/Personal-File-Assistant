@@ -9,7 +9,7 @@ import { timeAgo, getOsDisplay } from '../utils/format';
  * @returns {Object} Device state and methods
  */
 export function useDevices(options = {}) {
-  const { refreshInterval = 30000 } = options;
+  const { refreshInterval = 5000 } = options;
 
   const [devices, setDevices] = useState([]);
   const [localDevice, setLocalDevice] = useState(null);

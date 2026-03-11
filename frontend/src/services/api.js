@@ -207,9 +207,14 @@ export async function rescanFiles() {
 
 /**
  * Get QR code data for device registration
+ * Note: This endpoint is at /register/qr (not under /api)
  */
 export async function getQRData() {
-  return request('/register/qr');
+  const response = await fetch('/register/qr');
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
 }
 
 // ============================================
@@ -218,9 +223,59 @@ export async function getQRData() {
 
 /**
  * Check server health
+ * Note: This endpoint is at /health (not under /api)
  */
 export async function checkHealth() {
-  return request('/health');
+  const response = await fetch('/health');
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
+// ============================================
+// Device Pairing
+// ============================================
+
+/**
+ * Create a new pairing session
+ * @param {string} deviceType - Device type: 'linux', 'windows', 'mobile'
+ */
+export async function createPairing(deviceType) {
+  return request('/pairing', {
+    method: 'POST',
+    body: JSON.stringify({ device_type: deviceType }),
+  });
+}
+
+/**
+ * Get pairing session status
+ * @param {string} code - Pairing code
+ */
+export async function getPairingStatus(code) {
+  return request(`/pairing/${code}`);
+}
+
+/**
+ * Complete pairing from secondary device
+ * @param {string} code - Pairing code
+ * @param {object} data - Device data { name, scan_paths, os_type }
+ */
+export async function completePairing(code, data) {
+  return request(`/pairing/${code}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Cancel a pairing session
+ * @param {string} code - Pairing code
+ */
+export async function cancelPairing(code) {
+  return request(`/pairing/${code}`, {
+    method: 'DELETE',
+  });
 }
 
 // ============================================
@@ -250,6 +305,12 @@ export default {
 
   // Registration
   getQRData,
+
+  // Pairing
+  createPairing,
+  getPairingStatus,
+  completePairing,
+  cancelPairing,
 
   // Health
   checkHealth,

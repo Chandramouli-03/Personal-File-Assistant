@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     heartbeat_interval: int = 30
     heartbeat_timeout: int = 120
 
+    # Database Configuration
+    database_url: str = ""  # Empty = use default SQLite path
+    database_echo: bool = False  # Set to True for SQL debugging
+
+    # Pairing Configuration
+    pairing_code_length: int = 6
+    pairing_expiration_minutes: int = 15
+
     @property
     def scan_paths_list(self) -> List[Path]:
         """Convert comma-separated paths to list of expanded Path objects"""

@@ -41,7 +41,7 @@ export default function Devices({ onNavigate }) {
   }, [allDevices, searchTerm, activeFilter]);
 
   const handleAddDevice = () => {
-    onNavigate?.('device-register');
+    onNavigate?.('add-device');
   };
 
   const handleRemoveDevice = async (deviceId) => {

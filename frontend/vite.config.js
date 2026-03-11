@@ -42,4 +42,12 @@ export default defineConfig({
       },
     },
   },
+  // SPA fallback for client-side routing
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
 })

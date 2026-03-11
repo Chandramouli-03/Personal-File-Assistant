@@ -14,8 +14,8 @@ services:
       - ~/Documents:/home/appuser/Documents:ro
       - ~/Downloads:/home/appuser/Downloads:ro
       - ~/Desktop:/home/appuser/Desktop:ro
-      # Persist device data
-      - device_data:/home/appuser/.personal-assistant
+      # Persist database data
+      - device_data:/app/data
     environment:
       - GLM_API_KEY=${GLM_API_KEY}
       - GLM_API_BASE_URL=${GLM_API_BASE_URL:-https://open.bigmodel.cn/api/paas/v4/}
@@ -35,18 +35,18 @@ services:
       retries: 3
       start_period: 10s
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: personal-assistant-frontend
-  #   ports:
-  #     - "3000:80"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - personal-assistant-network
-  #   restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: personal-assistant-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - personal-assistant-network
+    restart: unless-stopped
 
 networks:
   personal-assistant-network:

@@ -5,7 +5,7 @@ export default function Sidebar({ currentPage = 'home', onNavigate }) {
     { id: 'home', label: 'Home', icon: MdHome },
     { id: 'files', label: 'My Files', icon: MdFolder },
     { id: 'devices', label: 'Devices', icon: MdDevices },
-    { id: 'transfers', label: 'Transfers', icon: MdSwapHoriz },
+    // { id: 'transfers', label: 'Transfers', icon: MdSwapHoriz },
     { id: 'settings', label: 'Settings', icon: MdSettings },
   ];
 

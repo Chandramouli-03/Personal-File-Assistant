@@ -17,6 +17,7 @@ from .services.ai_orchestrator import AIOrchestrator
 from .services.file_transfer import FileTransferService
 from .api import router
 from .api import dependencies as deps
+from .database import init_db
 
 # Configure logging
 logging.basicConfig(
@@ -36,6 +37,11 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting Personal Assistant on device {DEVICE_ID}")
     logger.info(f"Mode: {settings.device_mode}")
     logger.info(f"Local IP: {get_local_ip()}")
+
+    # Initialize database
+    logger.info("Initializing database...")
+    await init_db()
+    logger.info("Database initialized successfully")
 
     # Initialize device manager
     device_manager = DeviceManager(DEVICE_ID)

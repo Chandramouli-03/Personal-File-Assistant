@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: personal-assistant-backend
+    ports:
+      - "8000:8000"
+      - "8001:8001/udp"  # UDP discovery port
+    volumes:
+      # Mount user directories for file access
+      - ~/Documents:/home/appuser/Documents:ro
+      - ~/Downloads:/home/appuser/Downloads:ro
+      - ~/Desktop:/home/appuser/Desktop:ro
+      # Persist device data
+      - device_data:/home/appuser/.personal-assistant
+    environment:
+      - GLM_API_KEY=${GLM_API_KEY}
+      - GLM_API_BASE_URL=${GLM_API_BASE_URL:-https://open.bigmodel.cn/api/paas/v4/}
+      - GLM_MODEL=${GLM_MODEL:-glm-4-flash}
+      - DEVICE_NAME=${DEVICE_NAME:-My Device}
+      - DEVICE_MODE=${DEVICE_MODE:-primary}
+      - PORT=8000
+      - SCAN_PATHS=/home/appuser/Documents,/home/appuser/Downloads,/home/appuser/Desktop
+      - DISCOVERY_PORT=8001
+    networks:
+      - personal-assistant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: personal-assistant-frontend
+  #   ports:
+  #     - "3000:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - personal-assistant-network
+  #   restart: unless-stopped
+
+networks:
+  personal-assistant-network:
+    driver: bridge
+
+volumes:
+  device_data:

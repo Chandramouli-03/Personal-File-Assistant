@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { MdVerifiedUser } from 'react-icons/md';
+import { MdVerifiedUser, MdCheck, MdError, MdHourglassEmpty } from 'react-icons/md';
 
-export default function PairCodeSection({ onVerify }) {
+export default function PairCodeSection({ onVerify, verifyStatus }) {
   const [code, setCode] = useState('');
 
   const handleInputChange = (e) => {
@@ -12,6 +12,52 @@ export default function PairCodeSection({ onVerify }) {
   const handleVerify = () => {
     if (code.length === 6) {
       onVerify?.(code);
+    }
+  };
+
+  const getButtonContent = () => {
+    switch (verifyStatus) {
+      case 'verifying':
+        return (
+          <>
+            <MdHourglassEmpty className="text-xl animate-pulse" />
+            Verifying...
+          </>
+        );
+      case 'success':
+        return (
+          <>
+            <MdCheck className="text-xl" />
+            Verified!
+          </>
+        );
+      case 'error':
+        return (
+          <>
+            <MdError className="text-xl" />
+            Invalid Code
+          </>
+        );
+      default:
+        return (
+          <>
+            <MdVerifiedUser className="text-xl" />
+            Verify
+          </>
+        );
+    }
+  };
+
+  const getButtonClass = () => {
+    switch (verifyStatus) {
+      case 'verifying':
+        return 'bg-slate-500 cursor-wait';
+      case 'success':
+        return 'bg-green-600';
+      case 'error':
+        return 'bg-red-600';
+      default:
+        return 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:opacity-90';
     }
   };
 
@@ -33,15 +79,22 @@ export default function PairCodeSection({ onVerify }) {
               onChange={handleInputChange}
               maxLength={6}
               placeholder="000000"
-              className="w-48 text-center tracking-[1em] font-mono text-xl h-12 rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-primary focus:ring-primary outline-none"
+              disabled={verifyStatus === 'verifying'}
+              className={`w-48 text-center tracking-[1em] font-mono text-xl h-12 rounded-lg border-2 outline-none transition-colors ${
+                verifyStatus === 'error'
+                  ? 'border-red-500 dark:bg-slate-800'
+                  : verifyStatus === 'success'
+                  ? 'border-green-500 dark:bg-slate-800'
+                  : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-primary focus:ring-primary'
+              }`}
             />
           </div>
           <button
             onClick={handleVerify}
-            className="w-full flex items-center justify-center gap-2 rounded-lg h-12 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold hover:opacity-90 transition-all"
+            disabled={code.length !== 6 || verifyStatus === 'verifying'}
+            className={`w-full flex items-center justify-center gap-2 rounded-lg h-12 font-bold transition-all ${getButtonClass()}`}
           >
-            <MdVerifiedUser className="text-xl" />
-            Verify
+            {getButtonContent()}
           </button>
           <p className="text-center text-slate-500 dark:text-slate-400 text-xs italic">
             Codes expire every 10 minutes

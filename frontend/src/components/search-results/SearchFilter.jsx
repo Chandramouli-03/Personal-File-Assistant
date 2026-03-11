@@ -11,7 +11,7 @@ export default function SearchFilter({ activeFilter, onFilterChange }) {
 
   return (
     <div className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-3">
-      <div className="max-w-6xl mx-auto flex items-center gap-3">
+      <div className="px-8 flex items-center gap-3">
         <MdFilterList className="text-slate-500" />
         <div className="flex flex-wrap gap-2">
           {filters.map((filter) => (

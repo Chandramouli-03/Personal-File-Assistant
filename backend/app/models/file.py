@@ -146,3 +146,32 @@ class FileDownloadResponse(BaseModel):
     """Response for file download"""
     file_info: FileInfo
     download_url: str
+
+
+class FileBrowseRequest(BaseModel):
+    """Request to browse files on a device"""
+    device_id: str
+    folder_path: Optional[str] = ""  # Empty for root
+    file_type: Optional[str] = None   # Filter by file type
+    search: Optional[str] = None      # Search within folder
+    page: int = 1
+    page_size: int = 50
+
+
+class FolderInfo(BaseModel):
+    """Virtual folder information"""
+    name: str
+    path: str
+    file_count: int = 0
+    total_size: int = 0  # Sum of all files in folder
+
+
+class FileBrowseResponse(BaseModel):
+    """Response for file browsing"""
+    files: list[FileInfo]
+    folders: list[FolderInfo]
+    total: int
+    page: int
+    page_size: int
+    current_path: str
+    has_more: bool = False

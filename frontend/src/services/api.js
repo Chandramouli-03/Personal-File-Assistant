@@ -201,6 +201,68 @@ export async function rescanFiles() {
   });
 }
 
+/**
+ * Browse files on a device with folder navigation
+ */
+export async function browseFiles(deviceId, options = {}) {
+  const { folderPath = '', fileType = null, search = null, page = 1, pageSize = 50 } = options;
+
+  return request('/files/browse', {
+    method: 'POST',
+    body: JSON.stringify({
+      device_id: deviceId,
+      folder_path: folderPath,
+      file_type: fileType,
+      search,
+      page,
+      page_size: pageSize,
+    }),
+  });
+}
+
+/**
+ * Upload file to device
+ */
+export async function uploadFile(deviceId, file, targetPath = '', onProgress) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('device_id', deviceId);
+  if (targetPath) formData.append('target_path', targetPath);
+
+  const url = `${API_BASE}/files/upload`;
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+
+    xhr.upload.onprogress = (event) => {
+      if (onProgress && event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (e) {
+          reject(new Error('Invalid response'));
+        }
+      } else {
+        try {
+          const error = JSON.parse(xhr.responseText);
+          reject(new Error(error.detail || 'Upload failed'));
+        } catch (e) {
+          reject(new Error('Upload failed'));
+        }
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.send(formData);
+  });
+}
+
 // ============================================
 // Device Registration (QR Code)
 // ============================================
@@ -302,6 +364,8 @@ export default {
   getFileDownloadUrl,
   copyFile,
   rescanFiles,
+  browseFiles,
+  uploadFile,
 
   // Registration
   getQRData,

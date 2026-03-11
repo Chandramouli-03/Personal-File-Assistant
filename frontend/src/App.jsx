@@ -6,6 +6,7 @@ import DeviceRegister from './pages/DeviceRegister';
 import AddDevice from './pages/AddDevice';
 import PairDevice from './pages/PairDevice';
 import SearchResults from './pages/SearchResults';
+import MyFiles from './pages/MyFiles';
 import './index.css';
 
 // Component for pairing page without layout
@@ -34,6 +35,7 @@ function App() {
           <Route path="add-device" element={<AddDevice />} />
           <Route path="device-register" element={<DeviceRegister />} />
           <Route path="search" element={<SearchResults />} />
+          <Route path="files" element={<MyFiles />} />
         </Route>
 
         {/* Catch all - redirect to home */}

@@ -9,6 +9,10 @@ from ...models.file import (
     FileReadResponse,
     FileCopyRequest,
     FileCopyResponse,
+    FileBrowseRequest,
+    FileBrowseResponse,
+    FolderInfo,
+    FileType,
 )
 from ...services.file_search import FileSearchService
 from ...services.file_transfer import FileTransferService
@@ -168,3 +172,133 @@ async def rescan_files(
         "success": True,
         "message": "Rescan started"
     }
+
+
+@router.post("/browse", response_model=FileBrowseResponse)
+async def browse_files(
+    request: FileBrowseRequest,
+    search: FileSearchService = Depends(get_file_search)
+):
+    """Browse files on a device with folder navigation"""
+    from datetime import datetime
+
+    # Get all files from the in-memory index
+    all_files = list(search.scanner.index.files.values())
+
+    # Normalize folder path (remove leading/trailing slashes)
+    folder_path = request.folder_path.strip("/") if request.folder_path else ""
+
+    # Filter files by folder path
+    filtered_files = []
+    for file_info in all_files:
+        rel_path = file_info.relative_path or ""
+
+        # Check if file is in the current folder
+        if folder_path:
+            # We're in a subfolder - file must be directly in this folder
+            # (not in a subfolder of this folder)
+            folder_prefix = folder_path + "/"
+            if rel_path.startswith(folder_prefix):
+                # Check if it's directly in this folder (no more slashes after the prefix)
+                remaining = rel_path[len(folder_prefix):]
+                if "/" not in remaining:
+                    filtered_files.append(file_info)
+        else:
+            # Root folder - file must have no slash in relative_path
+            if "/" not in rel_path:
+                filtered_files.append(file_info)
+
+    # Apply file type filter
+    if request.file_type:
+        try:
+            filter_type = FileType(request.file_type)
+            filtered_files = [f for f in filtered_files if f.file_type == filter_type]
+        except ValueError:
+            pass
+
+    # Apply search filter
+    if request.search:
+        search_lower = request.search.lower()
+        filtered_files = [f for f in filtered_files if search_lower in f.name.lower()]
+
+    # Get total count
+    total = len(filtered_files)
+
+    # Sort by name
+    filtered_files.sort(key=lambda f: f.name.lower())
+
+    # Apply pagination
+    offset = (request.page - 1) * request.page_size
+    paginated_files = filtered_files[offset:offset + request.page_size]
+
+    # Extract unique folders from all files
+    folder_map = {}  # path -> {name, file_count, total_size}
+
+    for file_info in all_files:
+        rel_path = file_info.relative_path or ""
+        if not rel_path:
+            continue
+
+        # Split path into parts
+        parts = rel_path.split("/")
+
+        # Determine the immediate subfolder(s) from current path
+        if folder_path:
+            # We're in a subfolder
+            current_parts = folder_path.split("/")
+            if len(parts) > len(current_parts):
+                # This file is in a subfolder
+                subfolder_name = parts[len(current_parts)]
+                subfolder_path = "/".join(parts[:len(current_parts) + 1])
+
+                if subfolder_path not in folder_map:
+                    folder_map[subfolder_path] = {
+                        "name": subfolder_name,
+                        "path": subfolder_path,
+                        "file_count": 0,
+                        "total_size": 0,
+                    }
+                folder_map[subfolder_path]["file_count"] += 1
+                folder_map[subfolder_path]["total_size"] += file_info.size
+        else:
+            # We're at root - get immediate subfolders
+            if len(parts) > 1:
+                subfolder_name = parts[0]
+                subfolder_path = parts[0]
+
+                if subfolder_path not in folder_map:
+                    folder_map[subfolder_path] = {
+                        "name": subfolder_name,
+                        "path": subfolder_path,
+                        "file_count": 0,
+                        "total_size": 0,
+                    }
+                folder_map[subfolder_path]["file_count"] += 1
+                folder_map[subfolder_path]["total_size"] += file_info.size
+
+    # Convert folder map to list of FolderInfo
+    folders = [
+        FolderInfo(
+            name=data["name"],
+            path=data["path"],
+            file_count=data["file_count"],
+            total_size=data["total_size"],
+        )
+        for data in folder_map.values()
+    ]
+
+    # Sort folders by name
+    folders.sort(key=lambda f: f.name.lower())
+
+    # Calculate if there are more pages
+    has_more = (offset + len(paginated_files)) < total
+
+    return FileBrowseResponse(
+        files=paginated_files,
+        folders=folders,
+        total=total,
+        page=request.page,
+        page_size=request.page_size,
+        current_path=folder_path,
+        has_more=has_more,
+    )

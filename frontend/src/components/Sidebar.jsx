@@ -42,7 +42,7 @@ export default function Sidebar({ currentPage = 'home', onNavigate }) {
         </nav>
 
         {/* Bottom Sidebar Content */}
-        <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
+        {/* <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
           <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
             <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Storage Usage</p>
             <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full mb-2">
@@ -50,7 +50,7 @@ export default function Sidebar({ currentPage = 'home', onNavigate }) {
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">16.2 GB of 25 GB used</p>
           </div>
-        </div>
+        </div> */}
       </div>
     </aside>
   );

@@ -1,6 +1,16 @@
+import { useState } from 'react';
 import { MdLaptopMac, MdDevicesOther, MdSmartphone, MdPictureAsPdf, MdImage, MdDescription, MdSearch, MdArrowForward } from 'react-icons/md';
 
-export default function HeroSection() {
+export default function HeroSection({ onSearch }) {
+  const [query, setQuery] = useState('');
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      onSearch?.(query.trim());
+    }
+  };
+
   return (
     <section className="w-full max-w-4xl px-6 pt-16 pb-12 flex flex-col items-center">
       <div className="text-center mb-10">
@@ -60,22 +70,24 @@ export default function HeroSection() {
       </div>
 
       {/* Massive Search Bar */}
-      <div className="w-full group">
+      <form onSubmit={handleSearch} className="w-full group">
         <div className="relative flex items-center bg-white dark:bg-slate-800 rounded-2xl shadow-lg border-2 border-transparent focus-within:border-primary transition-all p-2">
           <div className="pl-4 text-primary">
             <MdSearch className="text-2xl" />
           </div>
           <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-transparent border-none focus:ring-0 text-lg md:text-xl py-4 px-4 text-slate-800 dark:text-white placeholder:text-slate-400 outline-none"
             placeholder="Find my resume pdf or Photos from last month..."
             type="text"
           />
-          <button className="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center gap-2">
+          <button type="submit" className="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center gap-2">
             <span>Search</span>
             <MdArrowForward className="text-sm" />
           </button>
         </div>
-      </div>
+      </form>
     </section>
   );
 }

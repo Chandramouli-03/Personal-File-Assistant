@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # GLM API Configuration
     glm_api_key: str = ""
     glm_api_base_url: str = "https://open.bigmodel.cn/api/paas/v4/"
-    glm_model: str = "glm-4-flash"
+    glm_model: str = "glm-4.7"
 
     # Server Configuration
     port: int = 8000

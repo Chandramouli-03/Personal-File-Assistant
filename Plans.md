@@ -295,7 +295,7 @@ Environment Variables
 # .env.example
 GLM_API_KEY=your_glm_api_key_here
 GLM_API_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
-GLM_MODEL=glm-4-flash
+GLM_MODEL=glm-4.7
 
 # Server settings
 PORT=8000

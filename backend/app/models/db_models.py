@@ -3,7 +3,7 @@ SQLAlchemy ORM models for the Personal Assistant database.
 """
 
 from datetime import datetime, timedelta
-from sqlalchemy import Column, String, Integer, BigInteger, DateTime, Text, ForeignKey, Index, Enum as SQLEnum
+from sqlalchemy import Column, String, Integer, BigInteger, DateTime, Text, ForeignKey, Index, Enum as SQLEnum, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -304,4 +304,152 @@ class ScanLog(Base):
             "scan_duration_seconds": self.scan_duration_seconds,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+        }
+
+
+class AIProvider(str, enum.Enum):
+    """Supported AI providers"""
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    GLM = "glm"
+
+
+class UserSettings(Base):
+    """User settings model for AI configuration and preferences"""
+    __tablename__ = "user_settings"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4())[:8])
+
+    # AI Provider Configuration
+    ai_provider = Column(String(50), default=AIProvider.GLM.value)
+    api_key_encrypted = Column(Text, nullable=True)  # Fernet encrypted API key
+    base_url = Column(Text, nullable=True)  # Custom base URL for OpenAI-compatible APIs
+
+    # Feature Flags
+    nl_search_enabled = Column(Boolean, default=True)
+    semantic_search_enabled = Column(Boolean, default=False)
+    content_search_enabled = Column(Boolean, default=False)
+
+    # AI Model Settings per provider
+    model = Column(String(100), nullable=True)  # Generic model field for any provider
+    openai_model = Column(String(100), default="gpt-4o-mini")
+    anthropic_model = Column(String(100), default="claude-3-5-sonnet-20241022")
+    glm_model = Column(String(100), default="glm-4")
+
+    # Semantic Search Settings
+    embedding_model = Column(String(100), default="text-embedding-3-small")
+    embedding_provider = Column(String(50), default="openai")  # openai or local
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<UserSettings(id={self.id}, provider={self.ai_provider})>"
+
+    @classmethod
+    async def get_settings(cls, db: AsyncSession) -> "UserSettings":
+        """Get or create user settings (singleton pattern)"""
+        result = await db.execute(select(cls).limit(1))
+        settings = result.scalar_one_or_none()
+
+        if not settings:
+            settings = cls()
+            db.add(settings)
+            await db.commit()
+            await db.refresh(settings)
+
+        return settings
+
+    @classmethod
+    async def update_settings(cls, db: AsyncSession, **kwargs) -> "UserSettings":
+        """Update user settings"""
+        settings = await cls.get_settings(db)
+
+        for key, value in kwargs.items():
+            if hasattr(settings, key) and value is not None:
+                setattr(settings, key, value)
+
+        settings.updated_at = datetime.utcnow()
+        await db.commit()
+        await db.refresh(settings)
+
+        return settings
+
+    def to_dict(self, include_key: bool = False):
+        """Convert to dictionary"""
+        result = {
+            "id": self.id,
+            "ai_provider": self.ai_provider,
+            "base_url": self.base_url,
+            "nl_search_enabled": self.nl_search_enabled,
+            "semantic_search_enabled": self.semantic_search_enabled,
+            "content_search_enabled": self.content_search_enabled,
+            "model": self.model,
+            "openai_model": self.openai_model,
+            "anthropic_model": self.anthropic_model,
+            "glm_model": self.glm_model,
+            "embedding_model": self.embedding_model,
+            "embedding_provider": self.embedding_provider,
+            "has_api_key": bool(self.api_key_encrypted),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+        if include_key and self.api_key_encrypted:
+            result["api_key_masked"] = "••••••••" + self.api_key_encrypted[-4:] if len(self.api_key_encrypted) > 4 else "••••"
+
+        return result
+
+
+class FileEmbedding(Base):
+    """File embedding model for semantic search"""
+    __tablename__ = "file_embeddings"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4())[:12])
+    file_id = Column(String, ForeignKey("files.id", ondelete="CASCADE"), nullable=False)
+
+    # Embedding data
+    embedding = Column(Text, nullable=False)  # JSON array of floats
+    embedding_model = Column(String(100), nullable=False)
+    content_preview = Column(Text, nullable=True)  # Source text for embedding
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Indexes
+    __table_args__ = (
+        Index("idx_file_embeddings_file_id", "file_id"),
+    )
+
+    def __repr__(self):
+        return f"<FileEmbedding(id={self.id}, file={self.file_id})>"
+
+    @classmethod
+    async def get_by_file(cls, db: AsyncSession, file_id: str) -> "FileEmbedding":
+        """Get embedding for a specific file"""
+        result = await db.execute(select(cls).where(cls.file_id == file_id))
+        return result.scalar_one_or_none()
+
+    @classmethod
+    async def get_all_embeddings(cls, db: AsyncSession, limit: int = 10000) -> list:
+        """Get all embeddings for semantic search"""
+        result = await db.execute(select(cls).limit(limit))
+        return result.scalars().all()
+
+    @classmethod
+    async def delete_by_file(cls, db: AsyncSession, file_id: str):
+        """Delete embedding for a file"""
+        from sqlalchemy import delete
+        await db.execute(delete(cls).where(cls.file_id == file_id))
+
+    def to_dict(self):
+        """Convert to dictionary"""
+        import json
+        return {
+            "id": self.id,
+            "file_id": self.file_id,
+            "embedding": json.loads(self.embedding) if self.embedding else [],
+            "embedding_model": self.embedding_model,
+            "content_preview": self.content_preview[:200] if self.content_preview else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }

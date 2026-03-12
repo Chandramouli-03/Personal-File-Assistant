@@ -4,12 +4,16 @@ import SearchResultsHeader from '../components/search-results/SearchResultsHeade
 import SearchFilter from '../components/search-results/SearchFilter';
 import SearchResultItem from '../components/search-results/SearchResultItem';
 import { useSearch } from '../hooks/useSearch';
+import { semanticSearch } from '../services/api';
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [searchMode, setSearchMode] = useState('filename'); // 'filename' or 'semantic'
+  const [semanticResults, setSemanticResults] = useState([]);
+  const [semanticLoading, setSemanticLoading] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
 
   // Use the search hook

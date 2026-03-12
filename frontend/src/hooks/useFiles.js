@@ -55,6 +55,8 @@ export function useFiles(options = {}) {
     setError(null);
     try {
       const result = await browseFiles(deviceId, {
+        device_id: deviceId,
+        folder_path: folderPath,
         folderPath,
         fileType: opts.fileType,
         search: opts.search,

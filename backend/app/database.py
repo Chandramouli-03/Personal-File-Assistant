@@ -4,6 +4,7 @@ Database configuration and session management using SQLAlchemy with SQLite.
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import text
 from pathlib import Path
 import os
 
@@ -61,15 +62,18 @@ async def init_db():
     """Initialize database tables."""
     async with engine.begin() as conn:
         # Import models to ensure they are registered
-        from .models.db_models import Device, File, PairingSession, ScanLog
+        from .models.db_models import Device, File, PairingSession, ScanLog, UserSettings, FileEmbedding
 
-        # Create all tables
+        # Create all tables with metadata
         await conn.run_sync(Base.metadata.create_all)
 
-    print(f"Database initialized at {DB_PATH}")
+        # Enable foreign keys (for backwards compatibility)
+        await conn.execute(text("PRAGMA foreign_keys=ON"))
+
+        print(f"Database initialized at {DB_PATH}")
 
 
 async def get_db_session():
     """Get a database session for use outside of FastAPI dependency injection."""
-    # Return the factory - caller must use it in an async context
+    # Return a factory - caller must use it in an async context
     return AsyncSessionLocal()

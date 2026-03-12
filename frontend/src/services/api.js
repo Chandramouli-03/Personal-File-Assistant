@@ -341,6 +341,72 @@ export async function cancelPairing(code) {
 }
 
 // ============================================
+// Settings Endpoints
+// ============================================
+
+/**
+ * Get AI settings
+ */
+export async function getAISettings() {
+  return request('/settings/ai');
+}
+
+/**
+ * Update AI settings
+ * @param {object} settings - Settings to update
+ */
+export async function updateAISettings(settings) {
+  return request('/settings/ai', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
+}
+
+/**
+ * Get available AI features and providers
+ */
+export async function getAIFeatures() {
+  return request('/settings/ai/features');
+}
+
+/**
+ * Test API connection
+ * @param {string} provider - Provider name: 'openai', 'anthropic', 'glm', 'custom'
+ * @param {string} apiKey - API key to test
+ * @param {string} baseUrl - Custom base URL (optional)
+ * @param {string} model - Model name to test (optional)
+ */
+export async function testAPIConnection(provider, apiKey, baseUrl = null, model = null) {
+  return request('/settings/ai/test', {
+    method: 'POST',
+    body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl, model }),
+  });
+}
+
+/**
+ * Delete stored API key
+ */
+export async function deleteAPIKey() {
+  return request('/settings/ai/key', {
+    method: 'DELETE',
+  });
+}
+
+/**
+ * Semantic search using embeddings
+ * @param {string} query - Search query
+ * @param {object} options - Search options
+ */
+export async function semanticSearch(query, options = {}) {
+  const { limit = 10, threshold = 0.7 } = options;
+
+  return request('/search/semantic', {
+    method: 'POST',
+    body: JSON.stringify({ query, limit, threshold }),
+  });
+}
+
+// ============================================
 // Export all as named exports
 // ============================================
 export default {
@@ -375,6 +441,16 @@ export default {
   getPairingStatus,
   completePairing,
   cancelPairing,
+
+  // Settings
+  getAISettings,
+  updateAISettings,
+  getAIFeatures,
+  testAPIConnection,
+  deleteAPIKey,
+
+  // Semantic Search
+  semanticSearch,
 
   // Health
   checkHealth,

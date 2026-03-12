@@ -8,6 +8,7 @@ import {
   MdInsertDriveFile,
   MdDownload,
   MdDeleteOutline,
+  MdVisibility,
 } from 'react-icons/md';
 
 const FILE_ICONS = {
@@ -21,9 +22,24 @@ const FILE_ICONS = {
   other: { icon: MdInsertDriveFile, color: 'bg-slate-100 dark:bg-slate-700 text-slate-600' },
 };
 
-export default function FileCard({ file, onDownload, onDelete, viewMode = 'grid' }) {
+// File types that can be previewed
+const PREVIEWABLE_TYPES = {
+  text: ['txt', 'md', 'csv', 'log'],
+  code: ['py', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'json', 'xml', 'yaml', 'yml', 'sh'],
+  image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+};
+
+const canPreview = (file) => {
+  const ext = file.extension?.toLowerCase().replace('.', '') || '';
+  return PREVIEWABLE_TYPES.text.includes(ext) ||
+         PREVIEWABLE_TYPES.code.includes(ext) ||
+         PREVIEWABLE_TYPES.image.includes(ext);
+};
+
+export default function FileCard({ file, onDownload, onDelete, onPreview, viewMode = 'grid' }) {
   const iconConfig = FILE_ICONS[file.fileType] || FILE_ICONS.other;
   const Icon = iconConfig.icon;
+  const previewable = canPreview(file);
 
   const handleDownload = (e) => {
     e.stopPropagation();
@@ -35,9 +51,27 @@ export default function FileCard({ file, onDownload, onDelete, viewMode = 'grid'
     onDelete?.(file);
   };
 
+  const handlePreview = (e) => {
+    e?.stopPropagation();
+    if (previewable) {
+      onPreview?.(file);
+    }
+  };
+
+  const handleCardClick = () => {
+    if (previewable) {
+      onPreview?.(file);
+    }
+  };
+
   if (viewMode === 'list') {
     return (
-      <div className="flex items-center gap-4 px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+      <div
+        onClick={handleCardClick}
+        className={`flex items-center gap-4 px-4 py-3 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group ${
+          previewable ? 'cursor-pointer' : ''
+        }`}
+      >
         <div className={`w-10 h-10 ${iconConfig.color} rounded-lg flex items-center justify-center shrink-0`}>
           <Icon className="text-xl" />
         </div>
@@ -53,7 +87,16 @@ export default function FileCard({ file, onDownload, onDelete, viewMode = 'grid'
         <div className="text-sm text-slate-500 dark:text-slate-400 w-32 text-right shrink-0">
           {file.modifiedDisplay}
         </div>
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          {previewable && (
+            <button
+              onClick={handlePreview}
+              className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              title="Preview"
+            >
+              <MdVisibility />
+            </button>
+          )}
           {onDownload && (
             <button
               onClick={handleDownload}
@@ -79,12 +122,26 @@ export default function FileCard({ file, onDownload, onDelete, viewMode = 'grid'
 
   // Grid view
   return (
-    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow group">
+    <div
+      onClick={handleCardClick}
+      className={`bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow group ${
+        previewable ? 'cursor-pointer hover:border-primary/50' : ''
+      }`}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className={`w-12 h-12 ${iconConfig.color} rounded-xl flex items-center justify-center`}>
           <Icon className="text-2xl" />
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {previewable && (
+            <button
+              onClick={handlePreview}
+              className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              title="Preview"
+            >
+              <MdVisibility />
+            </button>
+          )}
           {onDownload && (
             <button
               onClick={handleDownload}

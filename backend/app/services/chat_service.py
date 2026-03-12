@@ -393,6 +393,7 @@ Important guidelines:
         else:
             # It's already a dict
             file_info = file_data.get('file_info', file_data)
+            modified_time = file_info.get('modified_time')
             return {
                 "id": file_info.get('id', ''),
                 "name": file_info.get('name', ''),
@@ -401,7 +402,7 @@ Important guidelines:
                 "extension": file_info.get('extension', ''),
                 "file_type": file_info.get('file_type', ''),
                 "size": file_info.get('size_bytes', 0),
-                "modified_time": file_info.get('modified_time', ''),
+                "modified_time": str(modified_time) if modified_time else '',
                 "device_name": file_data.get('device_name', ''),
                 "device_id": file_data.get('device_id', ''),
                 "relevance_score": file_data.get('relevance_score', 0),

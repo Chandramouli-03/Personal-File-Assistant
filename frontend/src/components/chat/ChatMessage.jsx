@@ -36,7 +36,7 @@ const ChatMessage = ({ message, onFileAction }) => {
 
         {/* File References */}
         {message.file_references && message.file_references.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2">
             {message.file_references.map((file, index) => (
               <FileReferenceCard
                 key={index}

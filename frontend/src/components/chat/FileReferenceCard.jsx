@@ -112,13 +112,13 @@ const FileReferenceCard = ({ file, onAction, onPreview }) => {
 
         {/* File Actions */}
         <div className="flex gap-1">
-          <button
+          {/* <button
             onClick={() => onAction(file, 'preview')}
             className="w-8 h-8 flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
             title="Preview"
           >
             <MdVisibility className="text-base" />
-          </button>
+          </button> */}
           <button
             onClick={() => onAction(file, 'download')}
             className="w-8 h-8 flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
@@ -126,13 +126,13 @@ const FileReferenceCard = ({ file, onAction, onPreview }) => {
           >
             <MdDownload className="text-base" />
           </button>
-          <button
+          {/* <button
             onClick={() => onAction(file, 'copy')}
             className="w-8 h-8 flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
             title="Copy Path"
           >
             <MdContentCopy className="text-base" />
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

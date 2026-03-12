@@ -114,12 +114,31 @@ async def register_device(
 @router.delete("/{device_id}")
 async def unregister_device(
     device_id: str,
-    manager: DeviceManager = Depends(get_device_manager)
+    manager: DeviceManager = Depends(get_device_manager),
+    db: AsyncSession = Depends(get_db)
 ):
     """Unregister a device"""
+    from sqlalchemy import delete
+
+    # First try to unregister from DeviceManager (in-memory devices)
     success = manager.unregister_device(device_id)
+
     if not success:
-        raise HTTPException(status_code=404, detail="Device not found")
+        # If not found in DeviceManager, try to delete from database
+        from ..models.db_models import Device as DBDevice
+
+        db_device = await db.execute(
+            select(DBDevice).where(DBDevice.id == device_id)
+        )
+        db_device = db_device.scalar_one_or_none()
+
+        if db_device:
+            await db.delete(db_device)
+            await db.commit()
+            return {"success": True, "message": f"Device {device_id} unregistered"}
+        else:
+            raise HTTPException(status_code=404, detail="Device not found")
+
     return {"success": True, "message": f"Device {device_id} unregistered"}
 
 

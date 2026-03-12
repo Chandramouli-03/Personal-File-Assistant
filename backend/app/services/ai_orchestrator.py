@@ -441,7 +441,7 @@ Only include fields that are clearly mentioned. Return only JSON, no explanation
                     file_types=arguments.get("file_types"),
                 )
                 return {
-                    "results": [r.model_dump() for r in results],
+                    "results": [r.model_dump(mode='json') for r in results],
                     "count": len(results)
                 }
 
@@ -453,7 +453,7 @@ Only include fields that are clearly mentioned. Return only JSON, no explanation
                     query=arguments.get("query", ""),
                     file_types=arguments.get("file_types"),
                 )
-                all_results.extend([r.model_dump() for r in local_results])
+                all_results.extend([r.model_dump(mode='json') for r in local_results])
 
                 # Search remote devices if callback provided
                 if self.search_remote:
@@ -473,12 +473,12 @@ Only include fields that are clearly mentioned. Return only JSON, no explanation
                     file_path=arguments.get("file_path", ""),
                     max_chars=arguments.get("max_chars", 5000),
                 )
-                return result.model_dump()
+                return result.model_dump(mode='json')
 
             elif tool_name == "get_device_info":
                 devices = self.get_devices()
                 return {
-                    "devices": [d.model_dump() for d in devices],
+                    "devices": [d.model_dump(mode='json') for d in devices],
                     "count": len(devices)
                 }
 

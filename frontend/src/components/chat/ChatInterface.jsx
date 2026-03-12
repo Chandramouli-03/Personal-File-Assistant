@@ -3,6 +3,7 @@ import { MdSmartToy, MdRefresh } from 'react-icons/md';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { useChat } from '../../hooks/useChat';
+import { useChatContext } from '../../contexts/ChatContext';
 
 export default function ChatInterface() {
   const {
@@ -14,9 +15,20 @@ export default function ChatInterface() {
     currentConversationId,
   } = useChat();
 
+  const { markForReload } = useChatContext();
+
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [prefilledMessage, setPrefilledMessage] = useState('');
+
+  // Mark conversation for reload when unmounting (navigating away)
+  useEffect(() => {
+    return () => {
+      if (currentConversationId) {
+        markForReload();
+      }
+    };
+  }, [currentConversationId, markForReload]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -41,7 +53,7 @@ export default function ChatInterface() {
     switch (action) {
       case 'summarize':
         // Pre-fill chat with summarize request - user can edit before sending
-        setPrefilledMessage(`Summarize ${file.name}`);
+        setPrefilledMessage(`Summarize the file at ${file.path}`);
         break;
       case 'preview':
         // Open file preview modal

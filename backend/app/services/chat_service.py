@@ -299,7 +299,7 @@ class ChatService:
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc["id"],
-                        "content": json.dumps(tc.get("result", {}))
+                        "content": json.dumps(tc.get("result", {}), default=str)
                     })
 
             # Save assistant message

@@ -159,6 +159,7 @@ app = FastAPI(
     description="Cross-device file search with AI",
     version="0.1.0",
     lifespan=lifespan,
+    default=lambda: json.dumps(cls=DateTimeAwareEncoder),
 )
 
 # Add CORS middleware

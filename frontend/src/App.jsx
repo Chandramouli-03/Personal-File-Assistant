@@ -8,6 +8,7 @@ import PairDevice from './pages/PairDevice';
 import SearchResults from './pages/SearchResults';
 import MyFiles from './pages/MyFiles';
 import Settings from './pages/Settings';
+import { ChatContextProvider } from './contexts/ChatContext';
 import './index.css';
 
 // Component for pairing page without layout
@@ -23,7 +24,8 @@ function PairingWrapper() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <ChatContextProvider>
+      <BrowserRouter>
       <Routes>
         {/* Pairing route without layout */}
         <Route path="/pair/*" element={<PairingWrapper />} />
@@ -44,6 +46,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+    </ChatContextProvider>
   );
 }
 

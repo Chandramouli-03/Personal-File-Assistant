@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { getConversation, deleteConversation } from "../services/api";
+import { useChatContext } from "../contexts/ChatContext";
 
 export function useChat() {
   const [messages, setMessages] = useState([]);
@@ -9,6 +10,13 @@ export function useChat() {
   const [recentFiles, setRecentFiles] = useState([]);
 
   const abortControllerRef = useRef(null);
+
+  const {
+    currentConversationId: contextConversationId,
+    setCurrentConversationId: setContextConversationId,
+    needsReload,
+    clearReloadFlag,
+  } = useChatContext();
 
   const sendMessage = useCallback(async (content) => {
     if (!content.trim()) return;
@@ -133,6 +141,7 @@ export function useChat() {
 
             if (chunk.type === "done") {
               setCurrentConversationId(chunk.conversation_id);
+              setContextConversationId(chunk.conversation_id);
             }
           } catch (e) {
             console.error("Failed to parse SSE chunk:", e);
@@ -154,7 +163,7 @@ export function useChat() {
       setLoading(false);
       abortControllerRef.current = null;
     }
-  }, [currentConversationId]);
+  }, [currentConversationId, setContextConversationId]);
 
   const clearConversation = useCallback(async () => {
     if (currentConversationId) {
@@ -167,9 +176,10 @@ export function useChat() {
 
     setMessages([]);
     setCurrentConversationId(null);
+    setContextConversationId(null);
     setError(null);
     setRecentFiles([]);
-  }, [currentConversationId]);
+  }, [currentConversationId, setContextConversationId]);
 
   const loadConversation = useCallback(async (conversationId) => {
     try {
@@ -182,11 +192,20 @@ export function useChat() {
 
       setMessages(formattedMessages);
       setCurrentConversationId(conversationId);
+      setContextConversationId(conversationId);
     } catch (err) {
       console.error("Failed to load conversation:", err);
       setError(err.message);
     }
-  }, []);
+  }, [setContextConversationId]);
+
+  // Reload conversation from backend when returning to chat
+  useEffect(() => {
+    if (needsReload && contextConversationId) {
+      loadConversation(contextConversationId);
+      clearReloadFlag();
+    }
+  }, [needsReload, contextConversationId, loadConversation, clearReloadFlag]);
 
   return {
     messages,

@@ -22,7 +22,7 @@ export default function Sidebar() {
             <MdFolderShared />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-slate-900 dark:text-white text-lg font-bold leading-none">FileStream</h1>
+            <h1 className="text-slate-900 dark:text-white text-lg font-bold leading-none">Resource Assistant</h1>
             <p className="text-primary text-xs font-medium">Cross-device sync</p>
           </div>
         </div>

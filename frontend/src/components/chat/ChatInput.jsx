@@ -64,7 +64,7 @@ const ChatInput = ({ onSend, disabled, placeholder = "Message AI Assistant or se
     <div className="max-w-4xl mx-auto relative">
       {/* Suggestion chips */}
       <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-        {['Find images with beaches', 'Summarize my latest resume', 'Files on my Laptop'].map((text) => (
+        {['Find images from whatsapp', 'Find my latest resume', 'Files on my Laptop'].map((text) => (
           <button
             key={text}
             onClick={() => handleSuggestionClick(text)}

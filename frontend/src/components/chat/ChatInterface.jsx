@@ -100,11 +100,11 @@ export default function ChatInterface() {
       {/* Messages Container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-8 space-y-8 w-full"
+        className="max-w-4xl mx-auto relative flex-1 overflow-y-auto py-8 space-y-8 w-full no-scrollbar"
       >
         {/* Welcome State */}
         {messages.length === 0 && !loading && (
-          <div className="text-center">
+          <div className="max-w-4xl mx-auto relative text-center">
             <div className="flex gap-4 max-w-[85%]">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <MdSmartToy className="text-md" />

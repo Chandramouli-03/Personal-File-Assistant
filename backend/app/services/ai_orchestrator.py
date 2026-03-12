@@ -193,9 +193,11 @@ class AIOrchestrator:
 
     async def _load_settings(self):
         """Load settings from database if callback is set"""
+        logger.debug("Loading AI settings from database...")
         if self._get_settings_callback:
             try:
                 user_settings = await self._get_settings_callback()
+                logger.debug(f"Settings callback returned: {bool(user_settings)}")
                 if user_settings:
                     self.provider = user_settings.get("ai_provider", self.provider)
 
@@ -213,6 +215,9 @@ class AIOrchestrator:
                     api_key = user_settings.get("api_key")
                     if api_key:
                         self.api_key = api_key
+                        logger.debug(f"API key loaded successfully (length: {len(api_key)})")
+                    else:
+                        logger.warning("API key is empty or None after loading from database")
 
                     # Use custom base_url if provided, otherwise use preset
                     custom_base_url = user_settings.get("base_url")
@@ -229,6 +234,7 @@ class AIOrchestrator:
 
                     # Update feature flag
                     self.nl_search_enabled = user_settings.get("nl_search_enabled", True)
+                    logger.debug(f"NL search enabled: {self.nl_search_enabled}, Provider: {self.provider}, Model: {self.model}")
 
                     # Reset client to force re-initialization with new config
                     self._client = None
@@ -250,7 +256,14 @@ class AIOrchestrator:
         # Check if natural language search is enabled and API key is configured
         if not self.nl_search_enabled or not self.api_key or self.api_key == "your_api_key_here":
             # Fallback to basic search without AI
-            logger.info("NL search disabled or no API key, using basic search")
+            reason = []
+            if not self.nl_search_enabled:
+                reason.append("NL search disabled")
+            if not self.api_key:
+                reason.append("API key is empty")
+            elif self.api_key == "your_api_key_here":
+                reason.append("API key is placeholder")
+            logger.info(f"Using basic search (no AI). Reason: {', '.join(reason)}")
             return await self._basic_search(request)
 
         try:

@@ -90,8 +90,12 @@ async def lifespan(app: FastAPI):
                     encryption_key = app_settings.encryption_key or "default-key"
                     try:
                         api_key = decrypt_api_key(user_settings.api_key_encrypted, encryption_key)
+                        logger.debug(f"API key decrypted successfully (length: {len(api_key) if api_key else 0})")
                     except Exception as e:
-                        logger.warning(f"Failed to decrypt API key: {e}")
+                        logger.warning(f"Failed to decrypt API key (key mismatch or corruption): {e}")
+                        logger.debug(f"Encryption key used: '{encryption_key[:4]}...' (length: {len(encryption_key)})")
+                else:
+                    logger.debug("No encrypted API key found in database")
 
                 # Get the appropriate model based on provider
                 model = None

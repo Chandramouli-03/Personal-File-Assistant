@@ -1,10 +1,25 @@
 import { useState, useRef, useEffect } from 'react';
 import { MdSend, MdAttachFile } from 'react-icons/md';
 
-const ChatInput = ({ onSend, disabled, placeholder = "Message AI Assistant or search for files..." }) => {
+const ChatInput = ({ onSend, disabled, placeholder = "Message AI Assistant or search for files...", prefilledMessage }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Handle prefilled message from parent component (e.g., summarize action)
+  useEffect(() => {
+    if (prefilledMessage) {
+      setMessage(prefilledMessage);
+      // Focus the textarea after setting the message
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          // Move cursor to end
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = textareaRef.current.value.length;
+        }
+      }, 0);
+    }
+  }, [prefilledMessage]);
 
   // Auto-resize textarea
   useEffect(() => {

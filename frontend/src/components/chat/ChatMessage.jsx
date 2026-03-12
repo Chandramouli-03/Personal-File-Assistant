@@ -18,9 +18,11 @@ const ChatMessage = ({ message, onFileAction }) => {
 
       {/* Message Content */}
       <div className="space-y-4">
-        <div className={`p-4 rounded-2xl text-sm leading-relaxed ${isUser ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10' : 'bg-slate-100 dark:bg-slate-800/50 rounded-tl-none border border-slate-200 dark:border-slate-700/50 text-slate-800 dark:text-slate-200'}`}>
-          {message.content}
-        </div>
+        {(message.content || message.tool_calls?.length > 0) && (
+          <div className={`p-4 rounded-2xl text-sm leading-relaxed ${isUser ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10' : 'bg-slate-100 dark:bg-slate-800/50 rounded-tl-none border border-slate-200 dark:border-slate-700/50 text-slate-800 dark:text-slate-200'}`}>
+            {message.content}
+          </div>
+        )}
 
         {/* Tool Calls Badge */}
         {message.tool_calls && message.tool_calls.length > 0 && (

@@ -59,6 +59,9 @@ class DeviceManager:
         """Get info about this device"""
         total_storage, available_storage = self._get_storage_info()
 
+        # Check if local server is actually running and accessible
+        status = self._check_local_server_status()
+
         return DeviceInfo(
             id=self.local_device_id,
             name=settings.device_name,
@@ -67,7 +70,7 @@ class DeviceManager:
             ip_address=self._get_local_ip(),
             port=settings.port,
             url=f"http://{self._get_local_ip()}:{settings.port}",
-            status=DeviceStatus.ONLINE,
+            status=status,
             total_storage=total_storage,
             available_storage=available_storage,
             scan_paths=[str(p) for p in settings.scan_paths_list],
@@ -84,6 +87,24 @@ class DeviceManager:
             return ip
         except Exception:
             return "127.0.0.1"
+
+    def _check_local_server_status(self) -> DeviceStatus:
+        """Check if the local server is running and accessible"""
+        import socket
+
+        # Try to connect to the local server port
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)  # 1 second timeout
+            result = sock.connect_ex(("127.0.0.1", settings.port))
+            sock.close()
+
+            if result == 0:
+                return DeviceStatus.ONLINE
+            else:
+                return DeviceStatus.OFFLINE
+        except Exception:
+            return DeviceStatus.OFFLINE
 
     def register_device(self, registration: DeviceRegistration) -> DeviceInfo:
         """Register a new device"""

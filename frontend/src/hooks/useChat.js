@@ -6,6 +6,7 @@ export function useChat() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [recentFiles, setRecentFiles] = useState([]);
 
   const abortControllerRef = useRef(null);
 
@@ -107,6 +108,14 @@ export function useChat() {
             }
 
             if (chunk.type === "file_result") {
+              // Track recent files for context (keep last 10)
+              setRecentFiles((prev) => {
+                const newFiles = [chunk.file_result, ...prev.filter(
+                  (f) => f.path !== chunk.file_result.path
+                )];
+                return newFiles.slice(0, 10);
+              });
+
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
@@ -159,6 +168,7 @@ export function useChat() {
     setMessages([]);
     setCurrentConversationId(null);
     setError(null);
+    setRecentFiles([]);
   }, [currentConversationId]);
 
   const loadConversation = useCallback(async (conversationId) => {
@@ -183,6 +193,7 @@ export function useChat() {
     loading,
     error,
     currentConversationId,
+    recentFiles,
     sendMessage,
     clearConversation,
     loadConversation,

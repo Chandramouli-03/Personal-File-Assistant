@@ -68,17 +68,17 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "read_file_content",
-            "description": "Read the content of a text file",
+            "description": "Read and extract text content from a file for summarization. Supports PDF, DOCX, XLSX, TXT, CSV, MD, JSON, XML, and code files. Does NOT support images, videos, audio, or archives.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "Full path to the file"
+                        "description": "Full path to the file to read"
                     },
                     "max_chars": {
                         "type": "integer",
-                        "description": "Maximum characters to read (default 5000)"
+                        "description": "Maximum characters to read (default 15000)"
                     }
                 },
                 "required": ["file_path"]

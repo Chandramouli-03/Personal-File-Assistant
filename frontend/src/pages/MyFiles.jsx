@@ -222,6 +222,8 @@ export default function MyFiles() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           onUploadClick={() => setShowUploadModal(true)}
+          isSearching={!!searchTerm}
+          onNavigateToFolder={handleBreadcrumbClick}
         />
       )}
 

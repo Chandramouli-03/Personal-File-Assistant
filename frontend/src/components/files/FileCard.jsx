@@ -11,6 +11,7 @@ import {
   MdVisibility,
   MdPictureAsPdf,
   MdTableChart,
+  MdFolderOpen,
 } from 'react-icons/md';
 
 const FILE_ICONS = {
@@ -48,7 +49,7 @@ const canPreview = (file) => {
          PREVIEWABLE_TYPES.spreadsheet.includes(ext);
 };
 
-export default function FileCard({ file, onDownload, onDelete, onPreview, viewMode = 'grid' }) {
+export default function FileCard({ file, onDownload, onDelete, onPreview, viewMode = 'grid', isSearching = false, onNavigateToFolder }) {
   // Get icon based on fileType, with special handling for PDF and CSV files
   const ext = file.extension?.toLowerCase().replace('.', '') || '';
   let iconConfig = FILE_ICONS[file.fileType] || FILE_ICONS.other;
@@ -63,9 +64,30 @@ export default function FileCard({ file, onDownload, onDelete, onPreview, viewMo
   const Icon = iconConfig.icon;
   const previewable = canPreview(file);
 
+  // Get folder path for search results
+  const getFolderPath = () => {
+    const relPath = file.relativePath || '';
+    if (!relPath || relPath === file.name) return '';
+    // Remove the filename from the path
+    const lastSlashIndex = relPath.lastIndexOf('/');
+    if (lastSlashIndex > -1) {
+      return relPath.substring(0, lastSlashIndex);
+    }
+    return '';
+  };
+
+  const folderPath = getFolderPath();
+
   const handleDownload = (e) => {
     e.stopPropagation();
     onDownload?.(file);
+  };
+
+  const handleNavigateToFolder = (e) => {
+    e.stopPropagation();
+    if (folderPath && onNavigateToFolder) {
+      onNavigateToFolder(folderPath);
+    }
   };
 
   const handleDelete = (e) => {
@@ -99,6 +121,12 @@ export default function FileCard({ file, onDownload, onDelete, onPreview, viewMo
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-slate-900 dark:text-white truncate">{file.name}</h3>
+          {isSearching && folderPath && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+              <MdFolderOpen className="shrink-0" />
+              {folderPath}
+            </p>
+          )}
         </div>
         <div className="text-sm text-slate-500 dark:text-slate-400 w-20 text-right shrink-0">
           {file.extension?.toUpperCase() || '-'}
@@ -110,6 +138,15 @@ export default function FileCard({ file, onDownload, onDelete, onPreview, viewMo
           {file.modifiedDisplay}
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          {isSearching && folderPath && onNavigateToFolder && (
+            <button
+              onClick={handleNavigateToFolder}
+              className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              title="Go to folder"
+            >
+              <MdFolderOpen />
+            </button>
+          )}
           {previewable && (
             <button
               onClick={handlePreview}
@@ -155,6 +192,15 @@ export default function FileCard({ file, onDownload, onDelete, onPreview, viewMo
           <Icon className="text-2xl" />
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {isSearching && folderPath && onNavigateToFolder && (
+            <button
+              onClick={handleNavigateToFolder}
+              className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              title="Go to folder"
+            >
+              <MdFolderOpen />
+            </button>
+          )}
           {previewable && (
             <button
               onClick={handlePreview}
@@ -187,6 +233,12 @@ export default function FileCard({ file, onDownload, onDelete, onPreview, viewMo
       <h3 className="font-medium text-slate-900 dark:text-white truncate mb-1 group-hover:text-primary transition-colors">
         {file.name}
       </h3>
+      {isSearching && folderPath && (
+        <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1 mb-1">
+          <MdFolderOpen className="shrink-0" />
+          {folderPath}
+        </p>
+      )}
       <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
         <span>{file.sizeDisplay}</span>
         <span>{file.modifiedDisplay}</span>

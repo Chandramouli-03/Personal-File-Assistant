@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MdGridView, MdViewList, MdCloudUpload } from 'react-icons/md';
+import { MdGridView, MdViewList, MdCloudUpload, MdFolder } from 'react-icons/md';
 import Breadcrumbs from './Breadcrumbs';
 import FolderCard from './FolderCard';
 import FileCard from './FileCard';
@@ -17,6 +17,8 @@ export default function FileBrowser({
   viewMode,
   onViewModeChange,
   onUploadClick,
+  isSearching = false,
+  onNavigateToFolder,
 }) {
   const [internalViewMode, setInternalViewMode] = useState(() => {
     return localStorage.getItem('filesViewMode') || 'grid';
@@ -79,6 +81,14 @@ export default function FileBrowser({
 
       {/* Content area */}
       <div className="flex-1 overflow-y-auto px-8 py-6 bg-background-light dark:bg-background-dark/50">
+        {/* Search indicator */}
+        {isSearching && !loading && (
+          <div className="mb-4 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <MdFolder />
+            <span>Showing {files.length} search result{files.length !== 1 ? 's' : ''}</span>
+          </div>
+        )}
+
         {/* Loading state */}
         {loading && (
           <div className="text-center py-12">
@@ -152,6 +162,8 @@ export default function FileBrowser({
                         onDownload={onFileDownload}
                         onDelete={onFileDelete}
                         onPreview={onFilePreview}
+                        isSearching={isSearching}
+                        onNavigateToFolder={onNavigateToFolder}
                       />
                     ))}
                   </div>
@@ -174,6 +186,8 @@ export default function FileBrowser({
                         onDownload={onFileDownload}
                         onDelete={onFileDelete}
                         onPreview={onFilePreview}
+                        isSearching={isSearching}
+                        onNavigateToFolder={onNavigateToFolder}
                       />
                     ))}
                   </div>

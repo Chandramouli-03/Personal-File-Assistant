@@ -187,6 +187,43 @@ async def browse_files(
     # Normalize folder path
     folder_path = request.folder_path.strip("/") if request.folder_path else ""
 
+    # SEARCH MODE: When search term is provided, search across ALL files
+    if request.search:
+        search_lower = request.search.lower()
+        filtered_files = []
+
+        for file_info in all_files:
+            # Check if file name matches search
+            if search_lower in file_info.name.lower():
+                # Apply file type filter if provided
+                if request.file_type:
+                    try:
+                        filter_type = FileType(request.file_type)
+                        if file_info.file_type != filter_type:
+                            continue
+                    except ValueError:
+                        pass
+                filtered_files.append(file_info)
+
+        # No folders shown in search results - just files with their full paths
+        filtered_files.sort(key=lambda f: f.name.lower())
+
+        # Pagination
+        total = len(filtered_files)
+        offset = (request.page - 1) * request.page_size
+        paginated_files = filtered_files[offset:offset + request.page_size]
+
+        return FileBrowseResponse(
+            files=paginated_files,
+            folders=[],  # No folders in search results
+            total=total,
+            page=request.page,
+            page_size=request.page_size,
+            current_path="",  # No specific folder in search mode
+            has_more=(offset + len(paginated_files)) < total,
+        )
+
+    # BROWSE MODE: Navigate through folders
     # Collect folders and files separately
     folder_map = {}  # path -> {name, file_count, total_size}
     filtered_files = []
@@ -246,17 +283,13 @@ async def browse_files(
                 folder_map[first_folder]["file_count"] += 1
                 folder_map[first_folder]["total_size"] += file_info.size
 
-    # Apply filters to files only
+    # Apply file type filter to files only
     if request.file_type:
         try:
             filter_type = FileType(request.file_type)
             filtered_files = [f for f in filtered_files if f.file_type == filter_type]
         except ValueError:
             pass
-
-    if request.search:
-        search_lower = request.search.lower()
-        filtered_files = [f for f in filtered_files if search_lower in f.name.lower()]
 
     # Sort folders first, then files
     folders = [

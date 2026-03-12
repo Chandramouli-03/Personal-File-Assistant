@@ -16,6 +16,7 @@ export default function ChatInterface() {
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const [prefilledMessage, setPrefilledMessage] = useState('');
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function ChatInterface() {
   // Handle send message
   const handleSendMessage = (content) => {
     sendMessage(content);
+    setPrefilledMessage(''); // Clear prefilled message after sending
   };
 
   // Handle suggestion click
@@ -36,8 +38,11 @@ export default function ChatInterface() {
   // Handle file action
   const handleFileAction = (file, action) => {
     console.log('File action:', action, file);
-    // TODO: Implement file actions (preview, download, copy)
     switch (action) {
+      case 'summarize':
+        // Pre-fill chat with summarize request - user can edit before sending
+        setPrefilledMessage(`Summarize ${file.name}`);
+        break;
       case 'preview':
         // Open file preview modal
         break;
@@ -180,6 +185,7 @@ export default function ChatInterface() {
           onSend={handleSendMessage}
           disabled={loading}
           placeholder="Message AI Assistant or search for files..."
+          prefilledMessage={prefilledMessage}
         />
       </div>
     </div>

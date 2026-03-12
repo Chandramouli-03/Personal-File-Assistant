@@ -11,7 +11,8 @@ import {
   MdLaptopMac,
   MdCloudQueue,
   MdSmartphone,
-  MdComputer
+  MdComputer,
+  MdAutoAwesome
 } from 'react-icons/md';
 
 const FILE_TYPE_CONFIG = {
@@ -112,6 +113,14 @@ const FileReferenceCard = ({ file, onAction, onPreview }) => {
 
         {/* File Actions */}
         <div className="flex gap-1">
+          {/* Summarize Button */}
+          <button
+            onClick={() => onAction(file, 'summarize')}
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-500 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+            title="Summarize with AI"
+          >
+            <MdAutoAwesome className="text-base" />
+          </button>
           {/* <button
             onClick={() => onAction(file, 'preview')}
             className="w-8 h-8 flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"

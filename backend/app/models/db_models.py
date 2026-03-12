@@ -366,7 +366,7 @@ class UserSettings(Base):
         settings = await cls.get_settings(db)
 
         for key, value in kwargs.items():
-            if hasattr(settings, key) and value is not None:
+            if hasattr(settings, key):
                 setattr(settings, key, value)
 
         settings.updated_at = datetime.utcnow()

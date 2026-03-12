@@ -17,7 +17,10 @@ from .services.ai_orchestrator import AIOrchestrator
 from .services.file_transfer import FileTransferService
 from .api import router
 from .api import dependencies as deps
-from .database import init_db
+from .database import init_db, get_db
+from .models.db_models import UserSettings
+from .utils.encryption import decrypt_api_key
+from .config import settings as app_settings
 
 # Configure logging
 logging.basicConfig(
@@ -73,6 +76,47 @@ async def lifespan(app: FastAPI):
         get_devices_callback=lambda: device_manager.get_all_devices(include_local=True),
         search_remote_callback=None,  # TODO: Implement remote search
     )
+
+    # Set up settings callback to load user AI settings from database
+    async def load_ai_settings():
+        """Load AI settings from database for the orchestrator"""
+        async for db in get_db():
+            try:
+                user_settings = await UserSettings.get_settings(db)
+
+                # Decrypt API key if exists
+                api_key = None
+                if user_settings.api_key_encrypted:
+                    encryption_key = app_settings.encryption_key or "default-key"
+                    try:
+                        api_key = decrypt_api_key(user_settings.api_key_encrypted, encryption_key)
+                    except Exception as e:
+                        logger.warning(f"Failed to decrypt API key: {e}")
+
+                # Get the appropriate model based on provider
+                model = None
+                if user_settings.ai_provider == "openai":
+                    model = user_settings.openai_model
+                elif user_settings.ai_provider == "anthropic":
+                    model = user_settings.anthropic_model
+                elif user_settings.ai_provider == "glm":
+                    model = user_settings.glm_model
+                else:
+                    model = user_settings.model
+
+                # Build settings dictionary for orchestrator
+                return {
+                    "ai_provider": user_settings.ai_provider,
+                    "model": model,
+                    "api_key": api_key,
+                    "base_url": user_settings.base_url,
+                    "nl_search_enabled": user_settings.nl_search_enabled,
+                }
+            except Exception as e:
+                logger.error(f"Failed to load AI settings from database: {e}")
+                return None
+
+    ai_orchestrator.set_settings_callback(load_ai_settings)
     deps.set_ai_orchestrator(ai_orchestrator)
 
     # Initialize discovery service

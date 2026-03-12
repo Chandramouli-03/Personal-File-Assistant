@@ -71,29 +71,62 @@ class TestConnectionResponse(BaseModel):
 # Available models per provider
 AVAILABLE_MODELS = {
     "openai": {
-        "chat": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
-        "embedding": ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"]
+        "chat": [
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "o3",
+            "o3-mini",
+            "gpt-4-turbo",
+            "gpt-4",
+            "gpt-3.5-turbo"
+        ],
+        "embedding": [
+            "text-embedding-3-small",
+            "text-embedding-3-large"
+        ]
     },
+
     "anthropic": {
-        "chat": ["claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"],
+        "chat": [
+            "claude-3-opus",
+            "claude-3-sonnet",
+            "claude-3-haiku",
+            "claude-3.5-sonnet",
+            "claude-3.5-haiku",
+            "claude-sonnet-4",
+            "claude-opus-4"
+        ],
         "embedding": []
     },
+
     "glm": {
-        "chat": ["glm-4", "glm-4-flash", "glm-4-plus", "glm-4-long", "glm-3-turbo"],
+        "chat": [
+            "glm-4.7",
+            "glm-4.7-flash",
+            "glm-4.6",
+            "glm-4.5",
+            "glm-4.5-air",
+            "glm-4.5-flash",
+            "glm-4",
+            "glm-4-flash",
+            "glm-3-turbo"
+        ],
         "embedding": []
     },
+
     "custom": {
         "chat": [],  # User can enter any model name
         "embedding": []
     }
 }
 
-
 # Default base URLs for providers
 DEFAULT_BASE_URLS = {
     "openai": "https://api.openai.com/v1",
-    "anthropic": "https://api.anthropic.com/v1",
-    "glm": "https://open.bigmodel.cn/api/paas/v4",
+    "anthropic": "https://api.anthropic.com",
+    "glm": "https://api.z.ai/api/paas/v4",
     "custom": ""
 }
 

@@ -156,6 +156,9 @@ class AIOrchestrator:
         self.base_url = settings.ai_base_url
         self.model = settings.ai_model
 
+        # Feature flags (from settings or default to enabled)
+        self.nl_search_enabled = True
+
         # OpenAI client (initialized when needed)
         self._client = None
 
@@ -195,7 +198,16 @@ class AIOrchestrator:
                 user_settings = await self._get_settings_callback()
                 if user_settings:
                     self.provider = user_settings.get("ai_provider", self.provider)
-                    self.model = user_settings.get("model", self.model)
+
+                    # Get provider-specific model
+                    if self.provider == "openai":
+                        self.model = user_settings.get("openai_model", self.model)
+                    elif self.provider == "anthropic":
+                        self.model = user_settings.get("anthropic_model", self.model)
+                    elif self.provider == "glm":
+                        self.model = user_settings.get("glm_model", self.model)
+                    else:
+                        self.model = user_settings.get("model", self.model)
 
                     # Get decrypted API key
                     api_key = user_settings.get("api_key")
@@ -215,6 +227,9 @@ class AIOrchestrator:
                         }
                         self.base_url = base_url_map.get(self.provider, settings.ai_base_url)
 
+                    # Update feature flag
+                    self.nl_search_enabled = user_settings.get("nl_search_enabled", True)
+
                     # Reset client to force re-initialization with new config
                     self._client = None
 
@@ -232,9 +247,10 @@ class AIOrchestrator:
         # Load settings from database
         await self._load_settings()
 
-        # Check if API key is configured
-        if not self.api_key or self.api_key == "your_api_key_here":
+        # Check if natural language search is enabled and API key is configured
+        if not self.nl_search_enabled or not self.api_key or self.api_key == "your_api_key_here":
             # Fallback to basic search without AI
+            logger.info("NL search disabled or no API key, using basic search")
             return await self._basic_search(request)
 
         try:

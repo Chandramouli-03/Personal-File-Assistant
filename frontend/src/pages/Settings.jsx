@@ -5,18 +5,75 @@ import { useSettings } from '../hooks/useSettings';
 
 // Provider configurations
 const PROVIDERS = [
-  { id: 'openai', name: 'OpenAI', description: 'GPT-4 and GPT-3.5 models', keyUrl: 'https://platform.openai.com/api-keys', defaultBaseUrl: 'https://api.openai.com/v1' },
-  { id: 'anthropic', name: 'Anthropic', description: 'Claude models', keyUrl: 'https://console.anthropic.com/settings/keys', defaultBaseUrl: 'https://api.anthropic.com/v1' },
-  { id: 'glm', name: 'GLM (Zhipu AI)', description: 'Chinese GLM models', keyUrl: 'https://open.bigmodel.cn/', defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
-  { id: 'custom', name: 'Custom Provider', description: 'Any OpenAI-compatible API', keyUrl: '', defaultBaseUrl: '' },
+  {
+    id: "openai",
+    name: "OpenAI",
+    description: "GPT-4o, GPT-4.1 and reasoning models",
+    keyUrl: "https://platform.openai.com/api-keys",
+    defaultBaseUrl: "https://api.openai.com/v1"
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    description: "Claude AI models",
+    keyUrl: "https://console.anthropic.com/settings/keys",
+    defaultBaseUrl: "https://api.anthropic.com"
+  },
+  {
+    id: "glm",
+    name: "Z.ai (GLM)",
+    description: "GLM-4 series models",
+    keyUrl: "https://platform.z.ai/",
+    defaultBaseUrl: "https://api.z.ai/api/paas/v4"
+  },
+  {
+    id: "custom",
+    name: "Custom Provider",
+    description: "Any OpenAI-compatible API",
+    keyUrl: "",
+    defaultBaseUrl: ""
+  }
 ];
 
 // Model options per provider
 const MODEL_OPTIONS = {
-  openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-  anthropic: ['claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307'],
-  glm: ['glm-4', 'glm-4-flash', 'glm-4-plus', 'glm-4-long', 'glm-3-turbo'],
-  custom: [], // User can enter any model name
+  openai: [
+    "gpt-4o",
+    "gpt-4o-mini",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+    "o3",
+    "o3-mini",
+    "o4-mini",
+    "gpt-4-turbo",
+    "gpt-4",
+    "gpt-3.5-turbo"
+  ],
+
+  anthropic: [
+    "claude-3-opus",
+    "claude-3-sonnet",
+    "claude-3-haiku",
+    "claude-3.5-sonnet",
+    "claude-3.5-haiku",
+    "claude-sonnet-4",
+    "claude-opus-4"
+  ],
+
+  glm: [
+    "glm-4.7",
+    "glm-4.7-flash",
+    "glm-4.6",
+    "glm-4.5",
+    "glm-4.5-air",
+    "glm-4.5-flash",
+    "glm-4",
+    "glm-4-flash",
+    "glm-3-turbo"
+  ],
+
+  custom: []
 };
 
 export default function Settings() {
@@ -43,7 +100,6 @@ export default function Settings() {
   const [customBaseUrl, setCustomBaseUrl] = useState('');
   const [showCustomUrl, setShowCustomUrl] = useState(false);
   const [selectedModel, setSelectedModel] = useState('');
-  const [customModel, setCustomModel] = useState('');
   const [nlSearchEnabled, setNlSearchEnabled] = useState(true);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
   const [contentSearchEnabled, setContentSearchEnabled] = useState(false);
@@ -57,14 +113,12 @@ export default function Settings() {
 
       if (settings.model) {
         setSelectedModel(settings.model);
-        setCustomModel(settings.model);
       } else {
         // Use provider-specific model
         const providerSettings = PROVIDERS.find(p => p.id === (settings.ai_provider || 'glm'));
         if (providerSettings) {
           const models = MODEL_OPTIONS[providerSettings.id] || [];
           setSelectedModel(models[0] || '');
-          setCustomModel('');
         }
       }
       setNlSearchEnabled(settings.nl_search_enabled ?? true);
@@ -88,7 +142,6 @@ export default function Settings() {
       // Set default model for new provider
       const models = MODEL_OPTIONS[newProvider] || [];
       setSelectedModel(models[0] || '');
-      setCustomModel('');
     }
   };
 
@@ -103,7 +156,7 @@ export default function Settings() {
         nl_search_enabled: nlSearchEnabled,
         semantic_search_enabled: semanticSearchEnabled,
         content_search_enabled: contentSearchEnabled,
-        model: showCustomUrl || customBaseUrl ? customModel : selectedModel,
+        model: selectedModel,
         base_url: showCustomUrl && customBaseUrl ? customBaseUrl : null,
       };
 
@@ -129,8 +182,7 @@ export default function Settings() {
       return;
     }
 
-    const modelToTest = showCustomUrl || customBaseUrl ? customModel : selectedModel;
-    await testConnection(provider, apiKey.trim(), showCustomUrl && customBaseUrl ? customBaseUrl : null, modelToTest);
+    await testConnection(provider, apiKey.trim(), showCustomUrl && customBaseUrl ? customBaseUrl : null, selectedModel);
   };
 
   // Handle delete API key
@@ -334,38 +386,26 @@ export default function Settings() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
               Model
             </label>
-            {(showCustomUrl || customBaseUrl) ? (
-              // Custom model input
+            {models.length > 0 ? (
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {models.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
+            ) : (
               <input
                 type="text"
-                value={customModel}
-                onChange={(e) => setCustomModel(e.target.value)}
-                placeholder="Enter model name (e.g., glm-4, gpt-4o, etc.)"
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                placeholder="Enter model name"
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-            ) : (
-              // Preset model selection
-              models.length > 0 ? (
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {models.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  placeholder="Enter model name"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              )
             )}
           </div>
 

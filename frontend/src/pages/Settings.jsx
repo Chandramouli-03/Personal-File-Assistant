@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdArrowBack, MdVisibility, MdVisibilityOff, MdCheck, MdClose, MdRefresh } from 'react-icons/md';
+import { MdVisibility, MdVisibilityOff, MdCheck, MdClose, MdRefresh, MdSettings } from 'react-icons/md';
 import { useSettings } from '../hooks/useSettings';
+import PageHeader from '../components/common/PageHeader';
 
 // Provider configurations
 const PROVIDERS = [
@@ -225,18 +226,18 @@ export default function Settings() {
   const models = getCurrentModels();
 
   return (
-    <main className="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6">
-      <div className="px-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <MdArrowBack className="w-5 h-5" />
-          </button>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
-        </div>
+    <main className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader
+        title="Settings"
+        icon={MdSettings}
+        // showBackButton
+        onBack={() => navigate(-1)}
+        showNotifications={false}
+        showProfile={false}
+      />
+
+      <div className="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-8">
+        <div className="space-y-6">
 
         {/* Error Banner */}
         {error && (
@@ -512,6 +513,7 @@ export default function Settings() {
             )}
           </button>
         </div>
+      </div>
       </div>
     </main>
   );

@@ -1,10 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
+import { MdFolder, MdSearch } from 'react-icons/md';
 import { useFiles } from '../hooks/useFiles';
 import { useDevices } from '../hooks/useDevices';
-import FilesHeader from '../components/files/FilesHeader';
+import PageHeader from '../components/common/PageHeader';
 import FileBrowser from '../components/files/FileBrowser';
 import UploadDropzone from '../components/files/UploadDropzone';
 import FilePreviewModal from '../components/files/FilePreviewModal';
+
+const FILE_TYPES = [
+  { value: 'all', label: 'All Files' },
+  { value: 'document', label: 'Documents' },
+  { value: 'image', label: 'Images' },
+  { value: 'video', label: 'Videos' },
+  { value: 'audio', label: 'Audio' },
+  { value: 'archive', label: 'Archives' },
+  { value: 'code', label: 'Code' },
+];
 
 export default function MyFiles() {
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -119,16 +130,54 @@ export default function MyFiles() {
 
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
-      <FilesHeader
-        devices={devices}
-        selectedDevice={selectedDevice}
-        onDeviceChange={handleDeviceChange}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        fileTypeFilter={fileTypeFilter}
-        onFileTypeFilterChange={setFileTypeFilter}
+      <PageHeader
+        title="My Files"
+        icon={MdFolder}
+        showRefresh
         onRefresh={handleRefresh}
-        loading={loading}
+        refreshLoading={loading}
+        secondaryContent={
+          <>
+            {/* Device selector */}
+            <select
+              value={selectedDevice || ''}
+              onChange={(e) => handleDeviceChange(e.target.value)}
+              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="">Select a device</option>
+              {devices?.map((device) => (
+                <option key={device.id} value={device.id}>
+                  {device.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Search input */}
+            <div className="flex-1 min-w-[200px] max-w-md relative">
+              <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+
+            {/* File type filter */}
+            <select
+              value={fileTypeFilter}
+              onChange={(e) => setFileTypeFilter(e.target.value)}
+              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              {FILE_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </>
+        }
       />
 
       {/* Error Banner */}

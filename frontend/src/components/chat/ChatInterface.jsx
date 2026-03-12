@@ -83,7 +83,7 @@ export default function ChatInterface() {
       {/* Messages Container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-8 max-w-4xl mx-auto w-full"
+        className="flex-1 overflow-y-auto p-8 space-y-8 w-full"
       >
         {/* Welcome State */}
         {messages.length === 0 && !loading && (

@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MdDevices } from 'react-icons/md';
 import DeviceCard from '../components/devices/DeviceCard';
 import AddDeviceCard from '../components/devices/AddDeviceCard';
-import DevicesHeader from '../components/devices/DevicesHeader';
 import DevicesTopActions from '../components/devices/DevicesTopActions';
 import DeviceFilters from '../components/devices/DeviceFilters';
 import SecurityInfo from '../components/devices/SecurityInfo';
+import PageHeader from '../components/common/PageHeader';
 import { useDevices } from '../hooks/useDevices';
 
 export default function Devices() {
@@ -58,7 +59,10 @@ export default function Devices() {
 
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
-      <DevicesHeader />
+      <PageHeader
+        title="Manage Devices"
+        icon={MdDevices}
+      />
 
       {/* Error Banner */}
       {error && (
@@ -77,7 +81,7 @@ export default function Devices() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
-        <div className="px-8 space-y-8">
+        <div className="space-y-8">
           <DevicesTopActions
             onAddDevice={handleAddDevice}
             onRefresh={handleRefresh}
@@ -128,8 +132,6 @@ export default function Devices() {
               <AddDeviceCard onAddDevice={handleAddDevice} />
             </div>
           )}
-
-          <SecurityInfo />
         </div>
       </div>
     </main>

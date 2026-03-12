@@ -173,90 +173,134 @@ class ChatService:
         file_results = []
 
         try:
-            # Call AI with streaming
+            # Call AI with streaming - agentic loop
             client = self.ai_orchestrator._get_client()
 
-            stream = await client.chat.completions.create(
-                model=self.ai_orchestrator.model,
-                messages=messages,
-                tools=TOOLS,
-                tool_choice="auto",
-                stream=True
-            )
+            # Keep looping until AI is done (no more tool calls)
+            max_iterations = 5  # Prevent infinite loops
+            iteration = 0
 
-            assistant_content = ""
-            current_tool_calls = {}  # Track tool calls being built
+            while iteration < max_iterations:
+                iteration += 1
+                logger.info(f"AI iteration {iteration}")
 
-            async for chunk in stream:
-                delta = chunk.choices[0].delta
+                stream = await client.chat.completions.create(
+                    model=self.ai_orchestrator.model,
+                    messages=messages,
+                    tools=TOOLS,
+                    tool_choice="auto",
+                    stream=True
+                )
 
-                # Stream content
-                if delta.content:
-                    content_chunk = delta.content
-                    assistant_content += content_chunk
-                    yield StreamingChunk(
-                        type="content",
-                        content=content_chunk,
-                        conversation_id=conversation_id
-                    )
+                assistant_content = ""
+                current_tool_calls = {}  # Track tool calls being built
 
-                # Handle tool calls (streaming)
-                if hasattr(delta, 'tool_calls') and delta.tool_calls:
-                    for tool_call_chunk in delta.tool_calls:
-                        idx = tool_call_chunk.index
+                async for chunk in stream:
+                    delta = chunk.choices[0].delta
 
-                        # Initialize tool call if new
-                        if idx not in current_tool_calls:
-                            current_tool_calls[idx] = {
-                                "id": "",
-                                "name": "",
-                                "arguments": ""
-                            }
-
-                        # Accumulate tool call data
-                        if tool_call_chunk.id:
-                            current_tool_calls[idx]["id"] = tool_call_chunk.id
-                        if tool_call_chunk.function:
-                            if tool_call_chunk.function.name:
-                                current_tool_calls[idx]["name"] = tool_call_chunk.function.name
-                            if tool_call_chunk.function.arguments:
-                                current_tool_calls[idx]["arguments"] += tool_call_chunk.function.arguments
-
-            # Process completed tool calls
-            for idx in sorted(current_tool_calls.keys()):
-                tool_info = current_tool_calls[idx]
-                if tool_info["name"]:
-                    tool_calls.append(tool_info)
-
-                    yield StreamingChunk(
-                        type="tool_call",
-                        tool_call=tool_info,
-                        conversation_id=conversation_id
-                    )
-
-                    # Execute the tool
-                    try:
-                        arguments = json.loads(tool_info["arguments"])
-                        result = await self.ai_orchestrator._execute_tool(
-                            tool_info["name"],
-                            arguments
+                    # Stream content
+                    if delta.content:
+                        content_chunk = delta.content
+                        assistant_content += content_chunk
+                        yield StreamingChunk(
+                            type="content",
+                            content=content_chunk,
+                            conversation_id=conversation_id
                         )
 
-                        # Check if result contains files
-                        if result and "results" in result:
-                            for file_result in result["results"]:
-                                # Format file result for frontend
-                                formatted_file = self._format_file_result(file_result)
-                                file_results.append(formatted_file)
-                                yield StreamingChunk(
-                                    type="file_result",
-                                    file_result=formatted_file,
-                                    conversation_id=conversation_id
-                                )
-                    except json.JSONDecodeError as e:
-                        logger.error(f"Failed to parse tool arguments: {e}")
-                    except Exception as e:
-                        logger.error(f"Tool execution error: {e}")
+                    # Handle tool calls (streaming)
+                    if hasattr(delta, 'tool_calls') and delta.tool_calls:
+                        for tool_call_chunk in delta.tool_calls:
+                            idx = tool_call_chunk.index
+
+                            # Initialize tool call if new
+                            if idx not in current_tool_calls:
+                                current_tool_calls[idx] = {
+                                    "id": "",
+                                    "name": "",
+                                    "arguments": ""
+                                }
+
+                            # Accumulate tool call data
+                            if tool_call_chunk.id:
+                                current_tool_calls[idx]["id"] = tool_call_chunk.id
+                            if tool_call_chunk.function:
+                                if tool_call_chunk.function.name:
+                                    current_tool_calls[idx]["name"] = tool_call_chunk.function.name
+                                if tool_call_chunk.function.arguments:
+                                    current_tool_calls[idx]["arguments"] += tool_call_chunk.function.arguments
+
+                # Process completed tool calls
+                iteration_tool_calls = []
+                for idx in sorted(current_tool_calls.keys()):
+                    tool_info = current_tool_calls[idx]
+                    if tool_info["name"]:
+                        iteration_tool_calls.append(tool_info)
+                        tool_calls.append(tool_info)
+
+                        yield StreamingChunk(
+                            type="tool_call",
+                            tool_call=tool_info,
+                            conversation_id=conversation_id
+                        )
+
+                        # Execute the tool
+                        try:
+                            arguments = json.loads(tool_info["arguments"])
+                            result = await self.ai_orchestrator._execute_tool(
+                                tool_info["name"],
+                                arguments
+                            )
+
+                            # Store tool result for sending back to AI
+                            tool_info["result"] = result
+
+                            # Check if result contains files
+                            if result and "results" in result:
+                                for file_result in result["results"]:
+                                    # Format file result for frontend
+                                    formatted_file = self._format_file_result(file_result)
+                                    file_results.append(formatted_file)
+                                    yield StreamingChunk(
+                                        type="file_result",
+                                        file_result=formatted_file,
+                                        conversation_id=conversation_id
+                                    )
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Failed to parse tool arguments: {e}")
+                            tool_info["result"] = {"error": str(e)}
+                        except Exception as e:
+                            logger.error(f"Tool execution error: {e}")
+                            tool_info["result"] = {"error": str(e)}
+
+                # If no tool calls, we're done
+                if not iteration_tool_calls:
+                    break
+
+                # Add assistant message with tool calls to conversation
+                messages.append({
+                    "role": "assistant",
+                    "content": assistant_content or None,
+                    "tool_calls": [
+                        {
+                            "id": tc["id"],
+                            "type": "function",
+                            "function": {
+                                "name": tc["name"],
+                                "arguments": tc["arguments"]
+                            }
+                        }
+                        for tc in iteration_tool_calls
+                    ]
+                })
+
+                # Add tool results to conversation
+                for tc in iteration_tool_calls:
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": json.dumps(tc.get("result", {}))
+                    })
 
             # Save assistant message
             await self.add_message(

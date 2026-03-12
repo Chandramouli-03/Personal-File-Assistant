@@ -39,7 +39,7 @@ export default function FileBrowser({
         <Breadcrumbs currentPath={currentPath} onNavigate={onBreadcrumbClick} />
         <div className="flex items-center gap-2">
           {/* Upload button */}
-          {onUploadClick && (
+          {/* {onUploadClick && (
             <button
               onClick={onUploadClick}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
@@ -47,7 +47,7 @@ export default function FileBrowser({
               <MdCloudUpload />
               Upload
             </button>
-          )}
+          )} */}
 
           {/* View toggle */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
@@ -78,7 +78,7 @@ export default function FileBrowser({
       </div>
 
       {/* Content area */}
-      <div className="flex-1 overflow-y-auto p-4 bg-background-light dark:bg-background-dark/50">
+      <div className="flex-1 overflow-y-auto px-8 py-6 bg-background-light dark:bg-background-dark/50">
         {/* Loading state */}
         {loading && (
           <div className="text-center py-12">

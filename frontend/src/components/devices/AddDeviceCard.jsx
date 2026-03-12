@@ -11,7 +11,7 @@ export default function AddDeviceCard({ onAddDevice }) {
       </div>
       <div className="text-center">
         <p className="font-bold text-slate-900 dark:text-white">Add New Device</p>
-        <p className="text-xs text-slate-500">Connect a new hardware</p>
+        <p className="text-xs text-slate-500">Connect a new device</p>
       </div>
     </div>
   );

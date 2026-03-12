@@ -453,3 +453,117 @@ class FileEmbedding(Base):
             "content_preview": self.content_preview[:200] if self.content_preview else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
+
+class Conversation(Base):
+    """Chat conversation model for AI assistant"""
+    __tablename__ = "conversations"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4())[:12])
+    title = Column(String(200), nullable=True)  # Auto-generated from first message
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    message_count = Column(Integer, default=0)
+
+    # Relationships
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+
+    # Indexes
+    __table_args__ = (
+        Index("idx_conversations_updated", "updated_at"),
+    )
+
+    def __repr__(self):
+        return f"<Conversation(id={self.id}, title={self.title}, messages={self.message_count})>"
+
+    @classmethod
+    async def get_by_id(cls, db: AsyncSession, conversation_id: str) -> "Conversation":
+        """Get conversation by ID"""
+        result = await db.execute(select(cls).where(cls.id == conversation_id))
+        return result.scalar_one_or_none()
+
+    @classmethod
+    async def get_recent(cls, db: AsyncSession, limit: int = 20) -> list:
+        """Get recent conversations"""
+        result = await db.execute(
+            select(cls).order_by(cls.updated_at.desc()).limit(limit)
+        )
+        return result.scalars().all()
+
+    @classmethod
+    async def delete_by_id(cls, db: AsyncSession, conversation_id: str):
+        """Delete a conversation"""
+        from sqlalchemy import delete
+        await db.execute(delete(cls).where(cls.id == conversation_id))
+
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "message_count": self.message_count,
+        }
+
+
+class Message(Base):
+    """Chat message model for AI assistant"""
+    __tablename__ = "messages"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4())[:12])
+    conversation_id = Column(String, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
+    role = Column(String(20), nullable=False)  # 'user' or 'assistant'
+    content = Column(Text, nullable=False)
+
+    # Tool call data (for assistant messages)
+    tool_calls = Column(Text, nullable=True)  # JSON array of tool calls
+    tool_results = Column(Text, nullable=True)  # JSON array of tool results
+
+    # File references (for messages that mention files)
+    file_references = Column(Text, nullable=True)  # JSON array of file info
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationship
+    conversation = relationship("Conversation", back_populates="messages")
+
+    # Indexes
+    __table_args__ = (
+        Index("idx_messages_conversation", "conversation_id"),
+        Index("idx_messages_created", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<Message(id={self.id}, role={self.role}, conversation={self.conversation_id})>"
+
+    @classmethod
+    async def get_by_conversation(cls, db: AsyncSession, conversation_id: str, limit: int = 50) -> list:
+        """Get messages for a conversation"""
+        result = await db.execute(
+            select(cls)
+            .where(cls.conversation_id == conversation_id)
+            .order_by(cls.created_at.asc())
+            .limit(limit)
+        )
+        return result.scalars().all()
+
+    @classmethod
+    async def delete_by_conversation(cls, db: AsyncSession, conversation_id: str):
+        """Delete all messages for a conversation"""
+        from sqlalchemy import delete
+        await db.execute(delete(cls).where(cls.conversation_id == conversation_id))
+
+    def to_dict(self):
+        """Convert to dictionary"""
+        import json
+        return {
+            "id": self.id,
+            "conversation_id": self.conversation_id,
+            "role": self.role,
+            "content": self.content,
+            "tool_calls": json.loads(self.tool_calls) if self.tool_calls else None,
+            "tool_results": json.loads(self.tool_results) if self.tool_results else None,
+            "file_references": json.loads(self.file_references) if self.file_references else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }

@@ -407,6 +407,38 @@ export async function semanticSearch(query, options = {}) {
 }
 
 // ============================================
+// Chat Endpoints
+// ============================================
+
+/**
+ * List all conversations
+ * @param {number} limit - Maximum number of conversations to return
+ */
+export async function listConversations(limit = 20) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  const data = await request(`/chat/conversations?${params}`);
+  return data.conversations || [];
+}
+
+/**
+ * Get a conversation with its messages
+ * @param {string} conversationId - The conversation ID
+ */
+export async function getConversation(conversationId) {
+  return request(`/chat/conversations/${conversationId}`);
+}
+
+/**
+ * Delete a conversation
+ * @param {string} conversationId - The conversation ID
+ */
+export async function deleteConversation(conversationId) {
+  return request(`/chat/conversations/${conversationId}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================
 // Export all as named exports
 // ============================================
 export default {
@@ -451,6 +483,11 @@ export default {
 
   // Semantic Search
   semanticSearch,
+
+  // Chat
+  listConversations,
+  getConversation,
+  deleteConversation,
 
   // Health
   checkHealth,

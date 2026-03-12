@@ -13,6 +13,7 @@ export default function FileBrowser({
   onBreadcrumbClick,
   onFileDownload,
   onFileDelete,
+  onFilePreview,
   viewMode,
   onViewModeChange,
   onUploadClick,
@@ -150,6 +151,7 @@ export default function FileBrowser({
                         viewMode="grid"
                         onDownload={onFileDownload}
                         onDelete={onFileDelete}
+                        onPreview={onFilePreview}
                       />
                     ))}
                   </div>
@@ -171,6 +173,7 @@ export default function FileBrowser({
                         viewMode="list"
                         onDownload={onFileDownload}
                         onDelete={onFileDelete}
+                        onPreview={onFilePreview}
                       />
                     ))}
                   </div>

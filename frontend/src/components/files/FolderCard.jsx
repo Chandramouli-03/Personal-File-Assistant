@@ -4,7 +4,7 @@ export default function FolderCard({ name, path, fileCount, totalSizeDisplay, on
   return (
     <button
       onClick={() => onClick(path)}
-      className="w-full bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary hover:shadow-md transition-all group flex items-center gap-4 text-left"
+      className="w-full bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary hover:shadow-md transition-all group flex items-center gap-4 text-left"
     >
       <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
         <MdFolder className="text-2xl" />

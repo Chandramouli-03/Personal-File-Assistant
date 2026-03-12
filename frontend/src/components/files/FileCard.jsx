@@ -9,6 +9,8 @@ import {
   MdDownload,
   MdDeleteOutline,
   MdVisibility,
+  MdPictureAsPdf,
+  MdTableChart,
 } from 'react-icons/md';
 
 const FILE_ICONS = {
@@ -19,25 +21,45 @@ const FILE_ICONS = {
   archive: { icon: MdArchive, color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600' },
   code: { icon: MdCode, color: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600' },
   data: { icon: MdInsertDriveFile, color: 'bg-slate-100 dark:bg-slate-700 text-slate-600' },
+  pdf: { icon: MdPictureAsPdf, color: 'bg-red-100 dark:bg-red-900/30 text-red-600' },
+  spreadsheet: { icon: MdTableChart, color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' },
   other: { icon: MdInsertDriveFile, color: 'bg-slate-100 dark:bg-slate-700 text-slate-600' },
 };
 
 // File types that can be previewed
 const PREVIEWABLE_TYPES = {
-  text: ['txt', 'md', 'csv', 'log'],
+  text: ['txt', 'md', 'log'],
   code: ['py', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'json', 'xml', 'yaml', 'yml', 'sh'],
-  image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+  image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff'],
+  pdf: ['pdf'],
+  csv: ['csv'],
+  document: ['doc', 'docx', 'odt'],
+  spreadsheet: ['xls', 'xlsx', 'ods'],
 };
 
 const canPreview = (file) => {
   const ext = file.extension?.toLowerCase().replace('.', '') || '';
   return PREVIEWABLE_TYPES.text.includes(ext) ||
          PREVIEWABLE_TYPES.code.includes(ext) ||
-         PREVIEWABLE_TYPES.image.includes(ext);
+         PREVIEWABLE_TYPES.image.includes(ext) ||
+         PREVIEWABLE_TYPES.pdf.includes(ext) ||
+         PREVIEWABLE_TYPES.csv.includes(ext) ||
+         PREVIEWABLE_TYPES.document.includes(ext) ||
+         PREVIEWABLE_TYPES.spreadsheet.includes(ext);
 };
 
 export default function FileCard({ file, onDownload, onDelete, onPreview, viewMode = 'grid' }) {
-  const iconConfig = FILE_ICONS[file.fileType] || FILE_ICONS.other;
+  // Get icon based on fileType, with special handling for PDF and CSV files
+  const ext = file.extension?.toLowerCase().replace('.', '') || '';
+  let iconConfig = FILE_ICONS[file.fileType] || FILE_ICONS.other;
+
+  // Override icon for PDF and spreadsheet files
+  if (ext === 'pdf') {
+    iconConfig = FILE_ICONS.pdf;
+  } else if (PREVIEWABLE_TYPES.spreadsheet.includes(ext)) {
+    iconConfig = FILE_ICONS.spreadsheet;
+  }
+
   const Icon = iconConfig.icon;
   const previewable = canPreview(file);
 

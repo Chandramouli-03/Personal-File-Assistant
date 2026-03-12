@@ -4,6 +4,7 @@ import { useDevices } from '../hooks/useDevices';
 import FilesHeader from '../components/files/FilesHeader';
 import FileBrowser from '../components/files/FileBrowser';
 import UploadDropzone from '../components/files/UploadDropzone';
+import FilePreviewModal from '../components/files/FilePreviewModal';
 
 export default function MyFiles() {
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -12,6 +13,7 @@ export default function MyFiles() {
   const [fileTypeFilter, setFileTypeFilter] = useState('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('filesViewMode') || 'grid');
+  const [previewFile, setPreviewFile] = useState(null);
 
   const { devices, loading: devicesLoading } = useDevices();
   const {
@@ -111,6 +113,10 @@ export default function MyFiles() {
     }
   }, [selectedDevice, uploadFile, handleRefresh]);
 
+  const handleFilePreview = useCallback((file) => {
+    setPreviewFile(file);
+  }, []);
+
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
       <FilesHeader
@@ -163,6 +169,7 @@ export default function MyFiles() {
           onBreadcrumbClick={handleBreadcrumbClick}
           onFileDownload={handleFileDownload}
           onFileDelete={handleFileDelete}
+          onFilePreview={handleFilePreview}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           onUploadClick={() => setShowUploadModal(true)}
@@ -184,6 +191,14 @@ export default function MyFiles() {
         onUpload={handleUpload}
         currentPath={currentPath}
         uploadProgress={uploadProgress}
+      />
+
+      {/* Preview modal */}
+      <FilePreviewModal
+        file={previewFile}
+        isOpen={previewFile !== null}
+        onClose={() => setPreviewFile(null)}
+        onDownload={handleFileDownload}
       />
     </main>
   );

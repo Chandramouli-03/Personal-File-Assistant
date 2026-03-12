@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Devices from './pages/Devices';
+import DeviceRegister from './pages/DeviceRegister';
+import AddDevice from './pages/AddDevice';
+import PairDevice from './pages/PairDevice';
+import SearchResults from './pages/SearchResults';
+import MyFiles from './pages/MyFiles';
+import Settings from './pages/Settings';
+import { ChatContextProvider } from './contexts/ChatContext';
+import './index.css';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+// Component for pairing page without layout
+function PairingWrapper() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+      <Routes>
+        <Route path="/:code" element={<PairDevice />} />
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <ChatContextProvider>
+      <BrowserRouter>
+      <Routes>
+        {/* Pairing route without layout */}
+        <Route path="/pair/*" element={<PairingWrapper />} />
+
+        {/* Routes with layout */}
+        <Route element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="home" element={<Navigate to="/" replace />} />
+          <Route path="devices" element={<Devices />} />
+          <Route path="add-device" element={<AddDevice />} />
+          <Route path="device-register" element={<DeviceRegister />} />
+          <Route path="search" element={<SearchResults />} />
+          <Route path="files" element={<MyFiles />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+    </ChatContextProvider>
+  );
+}
+
+export default App;

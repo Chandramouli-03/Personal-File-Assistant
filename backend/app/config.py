@@ -6,10 +6,16 @@ from pydantic import field_validator
 
 
 class Settings(BaseSettings):
-    # GLM API Configuration
-    glm_api_key: str = ""
-    glm_api_base_url: str = "https://open.bigmodel.cn/api/paas/v4/"
-    glm_model: str = "glm-4-flash"
+    # AI Provider Configuration (supports OpenAI-compatible APIs)
+    ai_provider: str = "openai"  # openai, anthropic, glm, custom
+    ai_api_key: str = ""
+    ai_base_url: str = "https://api.openai.com/v1"
+    ai_model: str = "gpt-4o-mini"
+
+    # Pre-configured providers (can use custom base_url instead)
+    openai_base_url: str = "https://api.openai.com/v1"
+    anthropic_base_url: str = "https://api.anthropic.com/v1"
+    glm_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
 
     # Server Configuration
     port: int = 8000
@@ -26,6 +32,17 @@ class Settings(BaseSettings):
     discovery_port: int = 8001
     heartbeat_interval: int = 30
     heartbeat_timeout: int = 120
+
+    # Database Configuration
+    database_url: str = ""  # Empty = use default SQLite path
+    database_echo: bool = False  # Set to True for SQL debugging
+
+    # Pairing Configuration
+    pairing_code_length: int = 6
+    pairing_expiration_minutes: int = 15
+
+    # Encryption Configuration (for API keys)
+    encryption_key: str = ""  # Fernet key for encrypting API keys (generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 
     @property
     def scan_paths_list(self) -> List[Path]:

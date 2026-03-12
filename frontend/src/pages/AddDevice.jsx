@@ -92,7 +92,7 @@ export default function AddDevice() {
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
-          <div className="max-w-2xl mx-auto px-8 space-y-8">
+          <div className="space-y-8">
             {/* Header */}
             <div>
               <button
@@ -149,7 +149,7 @@ export default function AddDevice() {
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
-          <div className="max-w-2xl mx-auto px-8 space-y-8">
+          <div className="space-y-8">
             {/* Header */}
             <div>
               <button
@@ -220,7 +220,7 @@ export default function AddDevice() {
                 onClick={handleCancel}
                 className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-6 py-3 rounded-lg font-semibold"
               >
-                Cancel and Go to Devices
+                Go to Devices
               </button>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function AddDevice() {
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
-          <div className="max-w-2xl mx-auto px-8 space-y-8">
+          <div className="space-y-8">
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-green-200 dark:border-green-800 shadow-lg text-center">
               <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <MdCheck className="text-4xl text-green-600" />
@@ -265,7 +265,7 @@ export default function AddDevice() {
     return (
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark/50">
-          <div className="max-w-2xl mx-auto px-8 space-y-8">
+          <div className="space-y-8">
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-red-200 dark:border-red-800 shadow-lg text-center">
               <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <MdClose className="text-4xl text-red-600" />

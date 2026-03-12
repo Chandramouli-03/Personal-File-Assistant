@@ -125,7 +125,7 @@ async def unregister_device(
 
     if not success:
         # If not found in DeviceManager, try to delete from database
-        from ..models.db_models import Device as DBDevice
+        from sqlalchemy import select
 
         db_device = await db.execute(
             select(DBDevice).where(DBDevice.id == device_id)

@@ -77,6 +77,8 @@ const FileReferenceCard = ({ file, onAction, onPreview }) => {
   const fileType = getFileTypeInfo(fileExtension);
   const IconComponent = fileType.icon;
 
+  console.log("file: ", file)
+
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-xl hover:border-primary/50 transition-all cursor-pointer group shadow-sm">
       <div className="flex items-center gap-3">
@@ -105,9 +107,9 @@ const FileReferenceCard = ({ file, onAction, onPreview }) => {
                 <span className="ml-1">{file.device_name}</span>
               </span>
             )}
-            <span className="text-[10px] text-slate-400">
+            {/* <span className="text-[10px] text-slate-400">
               {formatFileSize(file.size)}
-            </span>
+            </span> */}
           </div>
         </div>
 
